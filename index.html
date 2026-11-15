@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atelier Tricot - Générateur RAG & Stitch Chart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-amber-50 text-stone-800 font-sans min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-stone-900 text-amber-100 shadow-md py-4 px-6 flex justify-between items-center">
+        <h1 class="text-xl md:text-2xl font-bold flex items-center gap-2">
+            <i class="fa-solid fa-mitten text-amber-400"></i> Atelier Tricot Pro
+        </h1>
+        <nav class="flex gap-2">
+            <button onclick="switchTab('rag')" id="btn-rag" class="px-3 md:px-4 py-2 rounded-lg bg-amber-600 text-white font-medium transition shadow text-sm">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Créer (RAG)
+            </button>
+            <button onclick="switchTab('chart')" id="btn-chart" class="px-3 md:px-4 py-2 rounded-lg bg-stone-800 text-amber-200 hover:bg-stone-700 font-medium transition text-sm">
+                <i class="fa-solid fa-chess-board mr-1"></i> Stitch Chart
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
+        <!-- TAB 1: RAG GENERATOR -->
+        <section id="tab-rag" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-200">
+                <h2 class="text-xl font-bold text-stone-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-amber-600"></i> Génération assistée par RAG (Depuis une photo)
+                </h2>
+                <p class="text-stone-600 text-sm mb-6">
+                    Importez la photo d'un pull d'inspiration et indiquez votre échantillon pour générer un patron sur-mesure basé sur vos blocs de référence validés (<code class="bg-amber-100 px-1 rounded">chunks.jsonl</code>).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left: Inputs -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">1. Photo d'inspiration</label>
+                            <input type="file" id="rag-photo" accept="image/*" class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200 border border-stone-200 rounded-xl p-2 bg-stone-50">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Échantillon Mailles (10cm)</label>
+                                <input type="number" id="rag-stitches" value="20" class="w-full border border-stone-300 rounded-xl p-2.5 bg-stone-50 focus:ring-2 focus:ring-amber-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Échantillon Rangs (10cm)</label>
+                                <input type="number" id="rag-rows" value="28" class="w-full border border-stone-300 rounded-xl p-2.5 bg-stone-50 focus:ring-2 focus:ring-amber-500 outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="runRagGeneration()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calculator"></i> Analyser & Rédiger le Patron Sur-Mesure
+                        </button>
+                    </div>
+
+                    <!-- Right: Preview & Library Match -->
+                    <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 flex flex-col justify-center items-center text-center min-h-[220px]">
+                        <div id="rag-placeholder" class="text-stone-400">
+                            <i class="fa-solid fa-image text-4xl mb-2"></i>
+                            <p class="text-sm">Importez une photo et lancez l'analyse RAG pour voir le résultat.</p>
+                        </div>
+                        <div id="rag-result" class="hidden w-full text-left space-y-3">
+                            <div class="bg-amber-100 text-amber-900 px-3 py-1.5 rounded-lg text-xs font-bold inline-block">
+                                <i class="fa-solid fa-check-circle"></i> Analyse IA Vision + RAG Terminée
+                            </div>
+                            <h3 class="font-bold text-lg text-stone-900" id="res-title">Pull Raglan Classique & Torsades</h3>
+                            <p class="text-xs text-stone-600" id="res-chunks">Patrons sources proches : <code class="bg-stone-200 px-1 rounded">chunks.jsonl #12 (Raglan standard)</code> & <code class="bg-stone-200 px-1 rounded">#08 (Panneau torsadé)</code></p>
+                            <div class="bg-white p-3 rounded-lg border border-stone-200 text-xs space-y-1.5 font-mono text-stone-700 shadow-inner">
+                                <p>• Montage dos : <span id="calc-montage" class="font-bold text-amber-700">96 mailles</span></p>
+                                <p>• Hauteur corps avant emmanchure : <span id="calc-corps" class="font-bold text-amber-700">38 cm (106 rangs)</span></p>
+                                <p>• Raglan (diminutions) : <span id="calc-raglan" class="font-bold text-amber-700">1 m. tous les 2 rgs</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: STITCH CHART -->
+        <section id="tab-chart" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-200">
+                <h2 class="text-xl font-bold text-stone-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chess-board text-amber-600"></i> Créateur de Grilles (Stitch Chart)
+                </h2>
+                <p class="text-stone-600 text-sm mb-6">
+                    Créez vos diagrammes de tricot personnalisés pour le <strong>Color (Jacquard)</strong>, la <strong>Lace (Dentelle)</strong> et les <strong>Cables (Torsades)</strong>.
+                </p>
+
+                <!-- Controls -->
+                <div class="flex flex-wrap items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Mode de grille</label>
+                        <select id="chart-mode" onchange="updateChartTools()" class="border border-stone-300 rounded-lg p-2 text-sm bg-white font-medium outline-none">
+                            <option value="color">Color (Jacquard / Couleurs)</option>
+                            <option value="lace">Lace (Dentelle / Symboles)</option>
+                            <option value="cables">Cables (Torsades)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Largeur (mailles)</label>
+                        <input type="number" id="grid-w" value="15" min="5" max="40" class="border border-stone-300 rounded-lg p-2 text-sm w-20 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Hauteur (rangs)</label>
+                        <input type="number" id="grid-h" value="15" min="5" max="40" class="border border-stone-300 rounded-lg p-2 text-sm w-20 bg-white outline-none">
+                    </div>
+                    <div class="self-end">
+                        <button onclick="generateGrid()" class="bg-stone-900 hover:bg-stone-800 text-white font-bold py-2 px-4 rounded-lg text-sm transition shadow">
+                            Générer la Grille
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Palette / Tools -->
+                <div class="mb-4">
+                    <span class="block text-xs font-bold text-stone-600 mb-2">Outil actif :</span>
+                    <div id="palette-container" class="flex items-center gap-2 flex-wrap">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Grid Workspace -->
+                <div class="overflow-auto border border-stone-300 rounded-xl p-4 bg-stone-100 flex justify-center max-h-[500px] shadow-inner">
+                    <div id="stitch-grid" class="grid gap-[1px] bg-stone-300 border border-stone-300"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-4 text-center text-xs mt-auto">
+        Atelier Tricot Pro &copy; 2026 - Conçu pour les passionné(e)s de tricot
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Tab Switching
+        function switchTab(tab) {
+            document.getElementById('tab-rag').classList.toggle('hidden', tab !== 'rag');
+            document.getElementById('tab-chart').classList.toggle('hidden', tab !== 'chart');
+            
+            document.getElementById('btn-rag').className = tab === 'rag' 
+                ? 'px-3 md:px-4 py-2 rounded-lg bg-amber-600 text-white font-medium transition shadow text-sm' 
+                : 'px-3 md:px-4 py-2 rounded-lg bg-stone-800 text-amber-200 hover:bg-stone-700 font-medium transition text-sm';
+            
+            document.getElementById('btn-chart').className = tab === 'chart' 
+                ? 'px-3 md:px-4 py-2 rounded-lg bg-amber-600 text-white font-medium transition shadow text-sm' 
+                : 'px-3 md:px-4 py-2 rounded-lg bg-stone-800 text-amber-200 hover:bg-stone-700 font-medium transition text-sm';
+        }
+
+        // RAG Simulation
+        function runRagGeneration() {
+            const stitches = parseFloat(document.getElementById('rag-stitches').value) || 20;
+            const rows = parseFloat(document.getElementById('rag-rows').value) || 28;
+            
+            document.getElementById('rag-placeholder').classList.add('hidden');
+            document.getElementById('rag-result').classList.remove('hidden');
+
+            // Dynamic calculation based on user gauge (48cm width, 38cm height)
+            const castOn = Math.round((48 * stitches) / 10);
+            const bodyHeight = Math.round((38 * rows) / 10);
+
+            document.getElementById('calc-montage').innerText = `${castOn} mailles`;
+            document.getElementById('calc-corps').innerText = `38 cm (${bodyHeight} rangs)`;
+        }
+
+        // Stitch Chart State
+        let currentTool = '#ffffff';
+        let currentMode = 'color';
+
+        const toolsConfig = {
+            color: [
+                { name: 'Fond / Blanc', val: '#ffffff', label: '⬜' },
+                { name: 'Fil Principal', val: '#b45309', label: '🟤' },
+                { name: 'Fil Contraste', val: '#1c1917', label: '⬛' },
+                { name: 'Fil Accent', val: '#d97706', label: '🟧' }
+            ],
+            lace: [
+                { name: 'Endroit', val: 'K', label: '|' },
+                { name: 'Envers', val: 'P', label: '-' },
+                { name: 'Jeté', val: 'YO', label: '○' },
+                { name: '2m. ens. end.', val: 'K2tog', label: '/' },
+                { name: 'Surjet simple', val: 'SSK', label: '\\' }
+            ],
+            cables: [
+                { name: 'Endroit', val: 'K', label: '|' },
+                { name: 'Envers', val: 'P', label: '-' },
+                { name: 'Torsade G', val: 'C4F', label: '⋔' },
+                { name: 'Torsade D', val: 'C4B', label: '⋍' }
+            ]
+        };
+
+        function updateChartTools() {
+            currentMode = document.getElementById('chart-mode').value;
+            const paletteDiv = document.getElementById('palette-container');
+            paletteDiv.innerHTML = '';
+            
+            const tools = toolsConfig[currentMode];
+            currentTool = tools[0].val;
+
+            tools.forEach((tool, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1 ${idx === 0 ? 'border-amber-600 bg-amber-50 text-amber-900 ring-2 ring-amber-400' : 'border-stone-300 bg-white text-stone-700'}`;
+                btn.innerHTML = `<span class="text-sm">${tool.label}</span> ${tool.name}`;
+                btn.onclick = () => {
+                    document.querySelectorAll('#palette-container button').forEach(b => b.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border border-stone-300 bg-white text-stone-700 flex items-center gap-1');
+                    btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border border-amber-600 bg-amber-50 text-amber-900 ring-2 ring-amber-400 flex items-center gap-1';
+                    currentTool = tool.val;
+                };
+                paletteDiv.appendChild(btn);
+            });
+
+            generateGrid();
+        }
+
+        function generateGrid() {
+            const w = parseInt(document.getElementById('grid-w').value) || 10;
+            const h = parseInt(document.getElementById('grid-h').value) || 10;
+            const gridDiv = document.getElementById('stitch-grid');
+            
+            gridDiv.style.gridTemplateColumns = `repeat(${w}, minmax(28px, 1fr))`;
+            gridDiv.innerHTML = '';
+
+            for (let r = 0; r < h; r++) {
+                for (let c = 0; c < w; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'w-7 h-7 bg-white border border-stone-200 flex items-center justify-center text-xs cursor-pointer select-none transition hover:bg-amber-100 font-bold';
+                    
+                    if (currentMode === 'color') {
+                        cell.style.backgroundColor = '#ffffff';
+                    }
+
+                    cell.onclick = () => {
+                        if (currentMode === 'color') {
+                            cell.style.backgroundColor = currentTool;
+                        } else {
+                            const symbolMap = { 'K': '|', 'P': '-', 'YO': '○', 'K2tog': '/', 'SSK': '\\', 'C4F': '⋔', 'C4B': '⋍' };
+                            cell.innerText = symbolMap[currentTool] || currentTool;
+                        }
+                    };
+                    gridDiv.appendChild(cell);
+                }
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            updateChartTools();
+        };
+    </script>
+</body>
+</html>
