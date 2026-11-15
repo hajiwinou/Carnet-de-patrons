@@ -81,6 +81,8 @@ body {
 }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
 .wrap { max-width: 720px; margin: 0 auto; }
 h1, h2, h3 { font-family: var(--font-head); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
@@ -267,10 +269,20 @@ pre.txt { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--fon
   gap: 2px;
   min-height: 52px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
   border-radius: 10px;
+  position: relative;
 }
 .tabbar button.on { color: var(--accent); font-weight: 600; }
+.tabbar .dot {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 14px);
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--ok);
+}
 
 #toast {
   position: fixed;
@@ -335,6 +347,19 @@ input[type=file] { display: none; }
 
 .opt { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
 .opt .scroll-x { background: var(--surface); }
+
+.prov-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prov-card.active {
+  border-color: var(--accent);
+}
 </style>
 </head>
 <body>
@@ -364,6 +389,51 @@ input[type=file] { display: none; }
   if (window.pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
+
+  /* ============ Catalogue des fournisseurs IA & Bascule automatique ============ */
+  var AI_PROVIDERS = {
+    gemini: {
+      id: 'gemini',
+      name: 'Google Gemini',
+      model: 'gemini-2.5-flash',
+      vision: true,
+      freeNote: 'Quota gratuit quotidien généreux — recommandé pour les PDF et photos.',
+      placeholder: 'AIzaSy...',
+      url: 'https://aistudio.google.com/app/apikey',
+      urlLabel: 'Créer une clé gratuite sur Google AI Studio'
+    },
+    groq: {
+      id: 'groq',
+      name: 'Groq (Llama 3.3 70B)',
+      model: 'llama-3.3-70b-versatile',
+      vision: false,
+      freeNote: 'Gratuit et ultra-rapide — idéal en secours ou pour l\'analyse de texte.',
+      placeholder: 'gsk_...',
+      url: 'https://console.groq.com/keys',
+      urlLabel: 'Créer une clé gratuite sur Groq Console'
+    },
+    openrouter: {
+      id: 'openrouter',
+      name: 'OpenRouter (Modèles gratuits)',
+      model: 'google/gemini-2.0-flash-exp:free',
+      vision: true,
+      freeNote: 'Agrégateur avec accès gratuit à Gemini Flash, Llama et Mistral.',
+      placeholder: 'sk-or-v1-...',
+      url: 'https://openrouter.ai/keys',
+      urlLabel: 'Créer une clé gratuite sur OpenRouter'
+    },
+    openai: {
+      id: 'openai',
+      name: 'OpenAI (GPT-4o mini)',
+      model: 'gpt-4o-mini',
+      vision: true,
+      freeNote: 'Nécessite un compte OpenAI avec crédits actifs.',
+      placeholder: 'sk-proj-...',
+      url: 'https://platform.openai.com/api-keys',
+      urlLabel: 'Gérer vos clés sur OpenAI Platform'
+    }
+  };
+  var PROVIDER_IDS = ['gemini', 'groq', 'openrouter', 'openai'];
 
   /* ============ Stockage IndexedDB autonome pour PDF & Photos ============ */
   var IDB = {
@@ -421,7 +491,6 @@ input[type=file] { display: none; }
     }
   };
 
-  /* Cache mémoire des Blobs et URLs objet */
   var blobs = new Map();
   var blobUrls = new Map();
 
@@ -657,6 +726,25 @@ input[type=file] { display: none; }
     } catch (e) {}
   }
 
+  var savedOpts = load('carnet.opts', {});
+  var defaultAiConfig = {
+    keys: {
+      gemini: savedOpts.apiKey || '',
+      groq: '',
+      openrouter: '',
+      openai: ''
+    },
+    models: {
+      gemini: 'gemini-2.5-flash',
+      groq: 'llama-3.3-70b-versatile',
+      openrouter: 'google/gemini-2.0-flash-exp:free',
+      openai: 'gpt-4o-mini'
+    },
+    prefText: 'gemini',
+    prefVision: 'gemini',
+    autoFailover: true
+  };
+
   var S = {
     theme: load('carnet.theme', 'auto'),
     group: load('carnet.group', 'all'),
@@ -675,11 +763,23 @@ input[type=file] { display: none; }
     log: [],
     busy: '',
     loaded: true,
-    opts: Object.assign({ expand: false, headers: true, min: 20, max: 30, auto: true, autoFile: '', apiKey: '' }, load('carnet.opts', {})),
+    opts: Object.assign({ expand: false, headers: true, min: 20, max: 30, auto: true, autoFile: '' }, savedOpts),
+    ai: Object.assign({}, defaultAiConfig, load('carnet.ai', {})),
+    aiTestStatus: {},
     exp: { valid: false, photos: true },
     sim: { sts: '', rows: '' },
     delAsk: false
   };
+  S.ai.keys = Object.assign({}, defaultAiConfig.keys, S.ai.keys || {});
+  S.ai.models = Object.assign({}, defaultAiConfig.models, S.ai.models || {});
+
+  function saveAiCfg() {
+    keep('carnet.ai', S.ai);
+  }
+
+  function hasAnyAiKey() {
+    return PROVIDER_IDS.some(function(id) { return !!(S.ai.keys[id] || '').trim(); });
+  }
 
   var thumbTried = {}, thumbQ = false;
   var V = { id: null, pdf: null, zoom: 1, pages: [], running: false, again: false };
@@ -708,12 +808,13 @@ input[type=file] { display: none; }
     t.textContent = m;
     t.style.display = 'block';
     clearTimeout(tt);
-    tt = setTimeout(function() { t.style.display = 'none'; }, 3400);
+    tt = setTimeout(function() { t.style.display = 'none'; }, 3800);
   }
 
   var ICON = {
     lib: '<path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/>',
     add: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    ai: '<path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/>',
     exp: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/>',
     guide: '<path d="M8 6h12M8 12h12M8 18h12"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
     back: '<path d="M15 5l-7 7 7 7"/>',
@@ -731,7 +832,7 @@ input[type=file] { display: none; }
   }
   function saveSoon(p) {
     clearTimeout(saveTimers[p.id]);
-    saveTimers[p.id] = setTimeout(function() { persist(p); }, 500);
+    saveTimers[p.id] = setTimeout(function() { persist(); }, 500);
   }
   function persist() {
     try {
@@ -954,88 +1055,194 @@ input[type=file] { display: none; }
     });
   }
 
-  /* ============ Appels Gemini API (Texte, JSON structuré, Vision/OCR) ============ */
-  async function callGemini(prompt, options) {
-    options = options || {};
-    var apiKey = (S.opts.apiKey || '').trim();
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + encodeURIComponent(apiKey);
-    var parts = [{ text: prompt }];
+  /* ============ Moteur Multi-IA avec Failover automatique ============ */
+  function extractJsonBlock(text) {
+    var clean = String(text || '').trim();
+    clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    var first = clean.indexOf('{');
+    var last = clean.lastIndexOf('}');
+    if (first >= 0 && last > first) {
+      clean = clean.slice(first, last + 1);
+    }
+    return JSON.parse(clean);
+  }
 
-    if (options.images && options.images.length) {
-      for (var i = 0; i < options.images.length; i++) {
-        var b = options.images[i];
-        var b64 = await blobToBase64(b);
-        parts.push({
-          inlineData: {
-            mimeType: b.type || 'image/jpeg',
-            data: b64
-          }
+  async function callSingleProvider(provId, prompt, options) {
+    var prov = AI_PROVIDERS[provId];
+    var apiKey = (S.ai.keys[provId] || '').trim();
+    if (!apiKey) {
+      var noKeyErr = new Error('Clé API non configurée pour ' + prov.name);
+      noKeyErr.code = 'no_key';
+      throw noKeyErr;
+    }
+    var model = (S.ai.models[provId] || prov.model).trim();
+    var hasImages = !!(options.images && options.images.length);
+    if (hasImages && !prov.vision) {
+      var noVisErr = new Error(prov.name + ' ne supporte pas la lecture d\'images.');
+      noVisErr.code = 'no_vision';
+      throw noVisErr;
+    }
+
+    if (provId === 'gemini') {
+      var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
+      var parts = [{ text: prompt }];
+      if (hasImages) {
+        for (var i = 0; i < options.images.length; i++) {
+          var b = options.images[i];
+          var b64 = await blobToBase64(b);
+          parts.push({ inlineData: { mimeType: b.type || 'image/jpeg', data: b64 } });
+        }
+      }
+      var payload = { contents: [{ role: 'user', parts: parts }] };
+      if (options.json) payload.generationConfig = { responseMimeType: 'application/json' };
+
+      var resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: options.signal
+      });
+      var data = await resp.json().catch(function() { return null; });
+      if (!resp.ok) {
+        var e1 = new Error((data && data.error && data.error.message) || ('Erreur HTTP ' + resp.status));
+        e1.status = resp.status;
+        throw e1;
+      }
+      var txt = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+      if (!txt) throw new Error('Réponse vide de Gemini');
+      return options.json ? extractJsonBlock(txt) : txt;
+    }
+
+    /* Fournisseurs compatibles OpenAI (Groq, OpenRouter, OpenAI) */
+    var endpoint = provId === 'groq' ? 'https://api.groq.com/openai/v1/chat/completions' :
+      provId === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' :
+      'https://api.openai.com/v1/chat/completions';
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    };
+    if (provId === 'openrouter') {
+      headers['HTTP-Referer'] = window.location.href || 'https://carnet-patrons.local';
+      headers['X-Title'] = 'Carnet de patrons';
+    }
+
+    var userContent;
+    if (hasImages) {
+      userContent = [{ type: 'text', text: prompt }];
+      for (var j = 0; j < options.images.length; j++) {
+        var imgBlob = options.images[j];
+        var imgB64 = await blobToBase64(imgBlob);
+        userContent.push({
+          type: 'image_url',
+          image_url: { url: 'data:' + (imgBlob.type || 'image/jpeg') + ';base64,' + imgB64 }
         });
       }
+    } else {
+      userContent = prompt;
     }
 
-    var payload = {
-      contents: [{ role: 'user', parts: parts }]
+    var bodyObj = {
+      model: model,
+      messages: [{ role: 'user', content: userContent }],
+      temperature: 0.1
     };
-    if (options.json) {
-      payload.generationConfig = { responseMimeType: 'application/json' };
+    if (options.json && provId !== 'openrouter') {
+      bodyObj.response_format = { type: 'json_object' };
     }
 
-    var delays = [1000, 2000, 4000];
+    var r2 = await fetch(endpoint, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(bodyObj),
+      signal: options.signal
+    });
+    var d2 = await r2.json().catch(function() { return null; });
+    if (!r2.ok) {
+      var e2 = new Error((d2 && d2.error && d2.error.message) || ('Erreur HTTP ' + r2.status));
+      e2.status = r2.status;
+      throw e2;
+    }
+    var reply = d2 && d2.choices && d2.choices[0] && d2.choices[0].message && d2.choices[0].message.content;
+    if (!reply) throw new Error('Réponse vide de ' + prov.name);
+    return options.json ? extractJsonBlock(reply) : reply;
+  }
+
+  async function callAI(prompt, options) {
+    options = options || {};
+    var isVision = !!(options.images && options.images.length);
+    var preferred = isVision ? S.ai.prefVision : S.ai.prefText;
+
+    /* Construire l'ordre de priorité parmi les fournisseurs ayant une clé configurée */
+    var queue = [];
+    if (preferred && (S.ai.keys[preferred] || '').trim() && (!isVision || AI_PROVIDERS[preferred].vision)) {
+      queue.push(preferred);
+    }
+    if (S.ai.autoFailover || !queue.length) {
+      PROVIDER_IDS.forEach(function(id) {
+        if (queue.indexOf(id) < 0 && (S.ai.keys[id] || '').trim() && (!isVision || AI_PROVIDERS[id].vision)) {
+          queue.push(id);
+        }
+      });
+    }
+
+    if (!queue.length) {
+      var err = new Error(isVision ?
+        'Aucune IA compatible vision/images n\'est configurée. Ajoutez une clé Gemini ou OpenRouter dans l\'onglet « IA ».' :
+        'Aucune clé API configurée. Ajoutez-en une gratuitement dans l\'onglet « IA » en bas de l\'écran.');
+      err.code = 'missing_config';
+      throw err;
+    }
+
     var lastErr = null;
-    for (var attempt = 0; attempt <= delays.length; attempt++) {
+    for (var i = 0; i < queue.length; i++) {
+      var provId = queue[i];
       if (options.signal && options.signal.aborted) {
         var ae = new Error('Annulé');
         ae.code = 'cancelled';
         throw ae;
       }
       try {
-        var resp = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: options.signal
-        });
-        if (resp.status === 429 && attempt < delays.length) {
-          await new Promise(function(r) { setTimeout(r, delays[attempt]); });
-          continue;
+        var result = await callSingleProvider(provId, prompt, options);
+        if (i > 0) {
+          toast('Bascule automatique réussie vers ' + AI_PROVIDERS[provId].name + '.');
         }
-        var data = await resp.json().catch(function() { return null; });
-        if (!resp.ok) {
-          var errMsg = (data && data.error && data.error.message) || ('Erreur HTTP ' + resp.status);
-          var err = new Error(errMsg);
-          err.status = resp.status;
-          throw err;
-        }
-        var text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
-        if (!text) throw new Error('Réponse vide de l\'IA');
-        if (options.json) {
-          var cleanJson = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-          return JSON.parse(cleanJson);
-        }
-        return text;
+        return { data: result, provider: AI_PROVIDERS[provId].name, providerId: provId };
       } catch (e) {
-        if (e && e.name === 'AbortError') {
+        if (e && (e.name === 'AbortError' || e.code === 'cancelled')) {
           e.code = 'cancelled';
           throw e;
         }
         lastErr = e;
-        if (attempt < delays.length && (!e.status || e.status >= 500)) {
-          await new Promise(function(r) { setTimeout(r, delays[attempt]); });
-        } else {
-          break;
+        if (i + 1 < queue.length) {
+          var reason = e.status === 429 ? 'quota atteint' : 'erreur';
+          S.busy = AI_PROVIDERS[provId].name + ' (' + reason + ') → bascule vers ' + AI_PROVIDERS[queue[i + 1]].name + '…';
+          render();
         }
       }
     }
-    throw lastErr || new Error('Échec de la requête IA');
+    throw lastErr || new Error('Toutes les IA configurées ont échoué.');
   }
 
   function aiMsg(e) {
     if (!e) return 'L\'analyse a échoué.';
     if (e.code === 'cancelled') return 'Analyse annulée.';
-    if (e.status === 400 || e.status === 403) return 'Clé API manquante ou refusée. Vous pouvez en saisir une dans l\'onglet « Ajouter » > Réglages IA.';
-    if (e.status === 429) return 'Trop de demandes. Réessayez dans quelques instants.';
+    if (e.code === 'missing_config') return e.message;
+    if (e.status === 429) return 'Quota gratuit atteint sur toutes vos clés configurées. Réessayez plus tard ou ajoutez une autre clé dans l\'onglet « IA ».';
+    if (e.status === 401 || e.status === 403) return 'Clé API invalide ou refusée. Vérifiez vos clés dans l\'onglet « IA ».';
     return 'Erreur IA : ' + (e.message || 'réessayez');
+  }
+
+  async function testProviderKey(provId) {
+    S.aiTestStatus[provId] = { state: 'testing', msg: 'Test en cours…' };
+    render();
+    try {
+      await callSingleProvider(provId, 'Réponds uniquement par le mot OK.', { json: false });
+      S.aiTestStatus[provId] = { state: 'ok', msg: 'Clé valide et fonctionnelle !' };
+    } catch (e) {
+      S.aiTestStatus[provId] = { state: 'bad', msg: (e && e.message) || 'Échec du test' };
+    }
+    render();
   }
 
   /* ============ Création, détection heuristique et contrôles ============ */
@@ -1381,14 +1588,15 @@ input[type=file] { display: none; }
       toast('Ajoutez d\'abord le texte du patron.');
       return false;
     }
-    var txt = proc(p).clean.slice(0, 70000), n = 0, opt = 0, ok = false;
+    var txt = proc(p).clean.slice(0, 70000), n = 0, opt = 0, ok = false, usedProvider = '';
     var signal = sig();
     try {
       S.busy = 'Étape 1 sur 2 : fiche, tailles et variantes…';
       render();
-      var r1 = await callGemini(prompt1(txt), { json: true, signal: signal });
-      n += applyAI(p, r1, null, over);
-      opt += mergeOptions(p, r1 && r1.options, over);
+      var r1 = await callAI(prompt1(txt), { json: true, signal: signal });
+      usedProvider = r1.provider;
+      n += applyAI(p, r1.data, null, over);
+      opt += mergeOptions(p, r1.data && r1.data.options, over);
       persist();
       ok = true;
     } catch (e) {
@@ -1399,14 +1607,15 @@ input[type=file] { display: none; }
       try {
         S.busy = 'Étape 2 sur 2 : tableaux par taille…';
         render();
-        var r2 = await callGemini(prompt2(txt, p), { json: true, signal: signal });
-        n += applyGrids(p, r2, over) + applyOptGrids(p, r2 && r2.options, over);
+        var r2 = await callAI(prompt2(txt, p), { json: true, signal: signal });
+        usedProvider = r2.provider || usedProvider;
+        n += applyGrids(p, r2.data, over) + applyOptGrids(p, r2.data && r2.data.options, over);
       } catch (e) {
         toast(aiMsg(e));
       }
-      p.analysis = { at: Date.now(), n: n, opts: (p.opts || []).length };
+      p.analysis = { at: Date.now(), n: n, opts: (p.opts || []).length, provider: usedProvider };
       persist();
-      toast(n + ' valeurs remplies' + (opt ? ', ' + opt + ' variante(s) détectée(s)' : '') + '. À vérifier.');
+      toast(n + ' valeurs remplies via ' + usedProvider + (opt ? ', ' + opt + ' variante(s) détectée(s)' : '') + '. À vérifier.');
     }
     if (ok && S.opts.autoFile && !p.folder) autoFile(p, S.opts.autoFile);
     S.busy = '';
@@ -1432,20 +1641,22 @@ input[type=file] { display: none; }
       toast('Associez d\'abord le PDF pour lire les schémas des pages.');
       return;
     }
-    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), per = 3, n = 0;
+    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), per = 3, n = 0, usedProv = '';
     try {
       for (var a = 1; a <= total; a += per) {
         var b = Math.min(total, a + per - 1);
         S.busy = 'Lecture des pages ' + a + ' à ' + b + '…';
         render();
         var imgs = await renderPages(pdf, a, b);
-        var res = await callGemini(promptVisual(p), { images: imgs, json: true, signal: sig() });
-        n += applyAI(p, res, null, false) + applyGrids(p, res, false) + applyOptGrids(p, res && res.options, false);
+        var res = await callAI(promptVisual(p), { images: imgs, json: true, signal: sig() });
+        usedProv = res.provider;
+        n += applyAI(p, res.data, null, false) + applyGrids(p, res.data, false) + applyOptGrids(p, res.data && res.data.options, false);
       }
-      p.analysis = p.analysis || { at: Date.now(), n: 0, opts: (p.opts || []).length };
+      p.analysis = p.analysis || { at: Date.now(), n: 0, opts: (p.opts || []).length, provider: usedProv };
       p.analysis.n += n;
+      if (usedProv) p.analysis.provider = usedProv;
       persist();
-      toast(n ? n + ' valeurs ajoutées d\'après les pages.' : 'Rien de nouveau dans les pages.');
+      toast(n ? n + ' valeurs ajoutées d\'après les pages (' + usedProv + ').' : 'Rien de nouveau dans les pages.');
     } catch (e) {
       toast(aiMsg(e));
     }
@@ -1466,10 +1677,10 @@ input[type=file] { display: none; }
       var bl = (await Promise.all(ph.map(function(x) { return loadBlob(x.id); }))).filter(Boolean);
       if (!bl.length) throw new Error('Photos introuvables en mémoire');
       var prompt = 'Ces images montrent un modèle de tricot (photo ou croquis). Décris ce que tu vois pour remplir une fiche. Réponds uniquement avec un objet JSON {clé:valeur}. N\'invente rien : omets les clés dont tu n\'es pas sûr. Les valeurs "parmi" doivent reprendre exactement une option.\n\nChamps :\n' + specText(PHOTO_KEYS);
-      var res = await callGemini(prompt, { images: bl, json: true, signal: sig() });
-      var n = applyAI(p, res, PHOTO_KEYS, false);
+      var res = await callAI(prompt, { images: bl, json: true, signal: sig() });
+      var n = applyAI(p, res.data, PHOTO_KEYS, false);
       persist();
-      toast(n ? n + ' champs proposés d\'après la photo.' : 'Rien de nouveau détecté.');
+      toast(n ? n + ' champs proposés via ' + res.provider + '.' : 'Rien de nouveau détecté.');
     } catch (e) {
       toast(aiMsg(e));
     }
@@ -1483,21 +1694,22 @@ input[type=file] { display: none; }
       toast('Associez le PDF pour le lire avec l\'IA.');
       return false;
     }
-    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), out = [], per = 3;
+    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), out = [], per = 3, usedProv = '';
     try {
       for (var a = 1; a <= total; a += per) {
         var b = Math.min(total, a + per - 1);
         S.busy = 'Transcription OCR des pages ' + a + ' à ' + b + '…';
         render();
         var imgs = await renderPages(pdf, a, b);
-        var text = await callGemini('Transcris fidèlement et intégralement le texte de ces pages d\'un patron de tricot, dans l\'ordre, sans rien résumer ni corriger. Garde un rang ou une phrase par ligne. Réponds uniquement avec la transcription.', { images: imgs, signal: sig() });
-        out.push(text);
+        var res = await callAI('Transcris fidèlement et intégralement le texte de ces pages d\'un patron de tricot, dans l\'ordre, sans rien résumer ni corriger. Garde un rang ou une phrase par ligne. Réponds uniquement avec la transcription.', { images: imgs, signal: sig() });
+        usedProv = res.provider;
+        out.push(res.data);
       }
       p.raw = out.join('\n\f\n');
       p.scanned = false;
       p._v = (p._v || 0) + 1;
       persist();
-      toast('Texte transcrit par l\'IA. Relisez-le.');
+      toast('Texte transcrit via ' + usedProv + '. Relisez-le.');
       return true;
     } catch (e) {
       toast(aiMsg(e));
@@ -1572,7 +1784,7 @@ input[type=file] { display: none; }
     if (last && files.length === 1) openP(last.id);
     else render();
 
-    if (S.opts.auto && made.length) {
+    if (S.opts.auto && made.length && hasAnyAiKey()) {
       for (var j = 0; j < made.length; j++) {
         var q = made[j];
         if (q.scanned) {
@@ -1986,10 +2198,18 @@ input[type=file] { display: none; }
   }
 
   function tabbar() {
-    var T = [['lib', 'Patrons', 'lib'], ['add', 'Ajouter', 'add'], ['exp', 'Export', 'exp'], ['guide', 'Champs', 'guide']];
+    var T = [
+      ['lib', 'Patrons', 'lib'],
+      ['add', 'Ajouter', 'add'],
+      ['ai', 'IA / Clés', 'ai'],
+      ['exp', 'Export', 'exp'],
+      ['guide', 'Champs', 'guide']
+    ];
+    var configured = hasAnyAiKey();
     return '<div class="tabbar"><nav>' + T.map(function(t) {
       var on = S.tab === t[0] || (S.tab === 'det' && t[0] === 'lib');
-      return '<button data-act="tab" data-v="' + t[0] + '" class="' + (on ? 'on' : '') + '">' + ico(t[2]) + '<span>' + t[1] + '</span></button>';
+      var dot = (t[0] === 'ai' && configured) ? '<span class="dot" title="IA configurée"></span>' : '';
+      return '<button data-act="tab" data-v="' + t[0] + '" class="' + (on ? 'on' : '') + '">' + ico(t[2]) + dot + '<span>' + t[1] + '</span></button>';
     }).join('') + '</nav></div>';
   }
 
@@ -2135,7 +2355,9 @@ input[type=file] { display: none; }
   }
 
   function viewAdd() {
+    var ready = hasAnyAiKey();
     return '<div class="top"><h1>Ajouter un patron</h1></div><div class="stack">' +
+      (!ready ? '<div class="note warn"><div><b>Analyse IA non configurée :</b> vous pouvez importer vos PDF dès maintenant, ou <a href="#" data-act="tab" data-v="ai">ajouter une clé API gratuite dans l\'onglet IA</a> pour le remplissage automatique.</div></div>' : '') +
       '<div class="card stack"><h2>Importer des PDF</h2>' +
       '<div class="dropzone" id="pdfDrop">' +
       ico('upload') +
@@ -2151,14 +2373,58 @@ input[type=file] { display: none; }
       '<textarea class="in" id="pasteText" rows="5" placeholder="Collez le texte du patron ici"></textarea>' +
       '<button class="btn" data-act="paste">Ajouter ce texte</button>' +
       '</div>' +
-      '<details class="sec" data-sec="aiSettings"' + (S.open.aiSettings ? ' open' : '') + '>' +
-      '<summary><h3>Configuration de l\'analyse IA (Gemini)</h3></summary>' +
-      '<div class="body">' +
-      '<p class="sub">Si l\'environnement ne fournit pas de clé automatiquement, vous pouvez renseigner votre clé API Google Gemini pour activer l\'extraction automatique, l\'OCR des scans et l\'analyse photo.</p>' +
-      '<label class="fl"><span class="n">Clé API Gemini (optionnel)</span><input class="in" type="password" id="apiKeyIn" placeholder="AIzaSy…" value="' + esc(S.opts.apiKey || '') + '"></label>' +
-      '</div>' +
-      '</details>' +
       (S.log.length ? '<div class="stack">' + S.log.slice(0, 6).map(function(l) { return '<div class="note ' + (l.ok ? 'ok' : 'bad') + '">' + esc(l.m) + '</div>'; }).join('') + '</div>' : '') +
+      '</div>';
+  }
+
+  function viewAi() {
+    var configuredText = PROVIDER_IDS.filter(function(id) { return !!(S.ai.keys[id] || '').trim(); });
+    var configuredVision = configuredText.filter(function(id) { return AI_PROVIDERS[id].vision; });
+
+    var cards = PROVIDER_IDS.map(function(id) {
+      var p = AI_PROVIDERS[id];
+      var keyVal = S.ai.keys[id] || '';
+      var hasKey = !!keyVal.trim();
+      var ts = S.aiTestStatus[id];
+      return '<div class="prov-card' + (hasKey ? ' active' : '') + '">' +
+        '<div class="row">' +
+        '<div class="grow"><h3>' + esc(p.name) + '</h3><span class="sub">' + esc(p.freeNote) + '</span></div>' +
+        '<span class="chip ' + (p.vision ? 'ok' : 'mute') + '">' + (p.vision ? 'Texte + Vision/PDF' : 'Texte seul') + '</span>' +
+        '</div>' +
+        '<div class="row">' +
+        '<input class="in grow" type="password" data-aikey="' + id + '" placeholder="' + esc(p.placeholder) + '" value="' + esc(keyVal) + '" aria-label="Clé API ' + esc(p.name) + '">' +
+        '<button class="btn small" data-act="testAi" data-v="' + id + '"' + (hasKey ? '' : ' disabled') + '>Tester</button>' +
+        '</div>' +
+        '<details><summary class="hint" style="cursor:pointer">Modèle avancé & lien pour obtenir la clé</summary>' +
+        '<div class="stack" style="margin-top:8px">' +
+        '<a href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer" style="font-size:13px;font-weight:500">↗ ' + esc(p.urlLabel) + '</a>' +
+        '<label class="fl"><span class="n">Identifiant du modèle</span><input class="in" type="text" data-aimodel="' + id + '" value="' + esc(S.ai.models[id] || p.model) + '"></label>' +
+        '</div></details>' +
+        (ts ? '<div class="note ' + (ts.state === 'ok' ? 'ok' : ts.state === 'bad' ? 'bad' : 'info') + '">' + esc(ts.msg) + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    return '<div class="top"><h1>Gestionnaire Multi-IA</h1></div>' +
+      '<div class="stack">' +
+      '<div class="note info"><div><b>Comment ça marche ?</b> Vos clés API sont stockées uniquement sur cet appareil. Si vous en renseignez plusieurs (ex. Google Gemini + Groq), l\'application basculera automatiquement sur l\'IA suivante si le quota gratuit est atteint.</div></div>' +
+      '<div class="card stack">' +
+      '<h2>Priorités par type de tâche</h2>' +
+      '<label class="fl"><span class="n">1. IA prioritaire pour l\'analyse du texte (fiche & tableaux)</span>' +
+      '<select class="in" data-aipref="prefText">' +
+      (configuredText.length ?
+        configuredText.map(function(id) { return '<option value="' + id + '"' + (S.ai.prefText === id ? ' selected' : '') + '>' + esc(AI_PROVIDERS[id].name) + '</option>'; }).join('') :
+        '<option value="">Renseignez au moins une clé ci-dessous</option>') +
+      '</select></label>' +
+      '<label class="fl"><span class="n">2. IA prioritaire pour la vision (schémas PDF, photos, OCR)</span>' +
+      '<select class="in" data-aipref="prefVision">' +
+      (configuredVision.length ?
+        configuredVision.map(function(id) { return '<option value="' + id + '"' + (S.ai.prefVision === id ? ' selected' : '') + '>' + esc(AI_PROVIDERS[id].name) + '</option>'; }).join('') :
+        '<option value="">Ajoutez une clé Gemini, OpenRouter ou OpenAI</option>') +
+      '</select></label>' +
+      '<label class="toggle"><input type="checkbox" data-aifailover="1"' + (S.ai.autoFailover ? ' checked' : '') + '> Basculer automatiquement vers une autre IA si le quota est atteint</label>' +
+      '</div>' +
+      '<h2>Vos clés API</h2>' +
+      cards +
       '</div>';
   }
 
@@ -2230,18 +2496,25 @@ input[type=file] { display: none; }
 
   function coverageHtml(p) {
     var all = ALLF.filter(function(f) { return f.k.indexOf('r_') !== 0; }), miss = all.filter(function(f) { return !filled(p.f[f.k]); });
-    return '<div class="card stack"><h3>Analyse du ' + new Date(p.analysis.at).toLocaleDateString('fr-FR') + '</h3><p class="sub num">' + (all.length - miss.length) + ' champs sur ' + all.length + ' remplis · ' + (p.opts || []).length + ' option(s)</p>' +
+    var provNote = p.analysis.provider ? ' via ' + p.analysis.provider : '';
+    return '<div class="card stack"><h3>Analyse du ' + new Date(p.analysis.at).toLocaleDateString('fr-FR') + esc(provNote) + '</h3><p class="sub num">' + (all.length - miss.length) + ' champs sur ' + all.length + ' remplis · ' + (p.opts || []).length + ' option(s)</p>' +
       (miss.length ? '<p class="sub">Non trouvés dans le patron :</p><div class="chips">' + miss.map(function(f) { return '<span class="chip ' + (f.core ? 'warn' : 'mute') + '">' + esc(f.l) + '</span>'; }).join('') + '</div>' : '') + '</div>';
   }
 
   function tabFiche(p) {
     var hasPdf = !!(pdfs.has(p.id) || (p.source && p.source.pdf));
-    var ai = '<div class="card stack"><div><h3>Remplir avec l\'IA</h3><p class="sub">L\'IA lit tout le patron : fiche, tailles, tableaux de mailles et variantes. Vos saisies manuelles ne sont jamais écrasées.</p></div>' +
+    var ready = hasAnyAiKey();
+    var ai = '<div class="card stack"><div><h3>Remplir avec l\'IA</h3><p class="sub">' +
+      (ready ? 'L\'IA lit tout le patron : fiche, tailles, tableaux de mailles et variantes. Vos saisies manuelles ne sont jamais écrasées.' :
+        'Configurez une clé API gratuite dans l\'onglet « IA / Clés » pour activer l\'extraction automatique.') +
+      '</p></div>' +
       '<div class="row">' +
-      '<button class="btn primary small" data-act="aiFill">Tout remplir</button>' +
-      (p.analysis ? '<button class="btn small" data-act="aiRe">Relire le patron</button>' : '') +
-      (hasPdf ? '<button class="btn small" data-act="aiVisual">Lire les pages (schémas)</button>' : '') +
-      ((p.photos && p.photos.length) ? '<button class="btn small" data-act="aiPhoto">Lire les photos</button>' : '') +
+      (ready ?
+        '<button class="btn primary small" data-act="aiFill">Tout remplir</button>' +
+        (p.analysis ? '<button class="btn small" data-act="aiRe">Relire le patron</button>' : '') +
+        (hasPdf ? '<button class="btn small" data-act="aiVisual">Lire les pages (schémas)</button>' : '') +
+        ((p.photos && p.photos.length) ? '<button class="btn small" data-act="aiPhoto">Lire les photos</button>' : '') :
+        '<button class="btn primary small" data-act="tab" data-v="ai">Configurer une IA</button>') +
       '</div></div>';
 
     var secs = SCHEMA.map(function(s) {
@@ -2430,10 +2703,11 @@ input[type=file] { display: none; }
   }
 
   function render() {
-    var a = document.activeElement, keepId = a && a.id && /^(q|title|rawText|pasteText|pasteTitle|newFolder|renameIn|apiKeyIn)$/.test(a.id) ? a.id : null;
+    var a = document.activeElement, keepId = a && a.id && /^(q|title|rawText|pasteText|pasteTitle|newFolder|renameIn)$/.test(a.id) ? a.id : null;
     var h = '';
     if (S.tab === 'lib') h = viewLib();
     else if (S.tab === 'add') h = viewAdd();
+    else if (S.tab === 'ai') h = viewAi();
     else if (S.tab === 'det') h = viewDet();
     else if (S.tab === 'exp') h = viewExp();
     else h = viewGuide();
@@ -2461,7 +2735,35 @@ input[type=file] { display: none; }
   document.addEventListener('input', function(e) {
     var t = e.target, p = cur();
     if (t.id === 'q') { S.q = t.value; $('#list').innerHTML = listHtml(); resolveLazyImages(); return; }
-    if (t.id === 'apiKeyIn') { S.opts.apiKey = t.value; keep('carnet.opts', S.opts); return; }
+
+    /* Réglages Multi-IA */
+    if (t.dataset.aikey) {
+      var pid = t.dataset.aikey;
+      S.ai.keys[pid] = t.value;
+      delete S.aiTestStatus[pid];
+      if (t.value.trim()) {
+        if (!S.ai.prefText || !(S.ai.keys[S.ai.prefText] || '').trim()) S.ai.prefText = pid;
+        if (AI_PROVIDERS[pid].vision && (!S.ai.prefVision || !(S.ai.keys[S.ai.prefVision] || '').trim())) S.ai.prefVision = pid;
+      }
+      saveAiCfg();
+      return;
+    }
+    if (t.dataset.aimodel) {
+      S.ai.models[t.dataset.aimodel] = t.value;
+      saveAiCfg();
+      return;
+    }
+    if (t.dataset.aipref) {
+      S.ai[t.dataset.aipref] = t.value;
+      saveAiCfg();
+      return;
+    }
+    if (t.dataset.aifailover) {
+      S.ai.autoFailover = t.checked;
+      saveAiCfg();
+      return;
+    }
+
     if (t.dataset.opt) {
       var k = t.dataset.opt;
       S.opts[k] = t.type === 'checkbox' ? t.checked : Math.max(1, parseInt(t.value, 10) || S.opts[k]);
@@ -2531,6 +2833,7 @@ input[type=file] { display: none; }
 
   document.addEventListener('change', function(e) {
     var t = e.target;
+    if (t.dataset.aikey) { render(); return; }
     if (t.id === 'pdfIn' && t.files && t.files.length) {
       var fs = Array.from(t.files);
       t.value = '';
@@ -2568,7 +2871,14 @@ input[type=file] { display: none; }
     if (!b) return;
     var a = b.dataset.act, v = b.dataset.v, p = cur();
 
-    if (a === 'tab') { S.tab = v; S.delAsk = false; render(); window.scrollTo(0, 0); }
+    if (a === 'tab') {
+      if (b.tagName === 'A') e.preventDefault();
+      S.tab = v;
+      S.delAsk = false;
+      render();
+      window.scrollTo(0, 0);
+    }
+    else if (a === 'testAi') testProviderKey(v);
     else if (a === 'toggleTheme') {
       var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
         (!document.documentElement.hasAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
