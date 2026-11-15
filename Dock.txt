@@ -1,0 +1,43 @@
+Voici le chemin le plus simple pour un ordinateur à la maison. Je n'ai pas pu relire la documentation officielle de Cobalt depuis ici, donc je me base sur ce que j'en connais. Si une commande échoue, collez-moi le message d'erreur et on corrige.
+
+Étape 1 – Installer Docker (une seule fois)
+
+	•	Téléchargez Docker Desktop sur docker.com (Windows ou Mac) et lancez-le.
+	•	Laissez-le ouvert, c'est lui qui fera tourner le service.
+
+Étape 2 – Créer le service
+
+	1.	Créez un dossier cobalt sur votre ordinateur.
+	2.	Dedans, créez un fichier texte nommé exactement docker-compose.yml avec ceci :
+
+services:
+  cobalt:
+    image: ghcr.io/imputnet/cobalt:11
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      API_URL: "http://localhost:9000/"
+
+	3.	Ouvrez un terminal dans ce dossier (PowerShell sous Windows, Terminal sous Mac) et tapez :
+
+docker compose up -d
+
+Étape 3 – Tester sur l'ordinateur
+Dans l'appli, ouvrez Outils → Vidéo Instagram → Service de téléchargement, et mettez http://localhost:9000/ (laissez la clé vide). Collez un lien de reel public et lancez la conversion.
+
+Étape 4 – L'utiliser depuis l'iPhone
+L'iPhone ne peut pas joindre localhost, il lui faut une adresse https publique. La plus simple est un tunnel Cloudflare gratuit :
+
+	1.	Installez cloudflared, par exemple brew install cloudflared sur Mac ou winget install cloudflared sous Windows.
+	2.	Lancez cloudflared tunnel --url http://localhost:9000. Il affiche une adresse en https://….trycloudflare.com.
+	3.	Copiez cette adresse dans API_URL du fichier docker-compose.yml, puis relancez avec docker compose up -d.
+	4.	Collez la même adresse dans l'appli sur l'iPhone.
+
+À savoir
+
+	•	L'ordinateur doit rester allumé, avec Docker et le tunnel ouverts, quand vous voulez convertir.
+	•	L'adresse trycloudflare.com change à chaque relance du tunnel. Pour une adresse fixe, il faut un nom de domaine.
+	•	Les publications privées ne fonctionnent pas. Certaines publications Instagram peuvent aussi être refusées sans cookies de connexion, et je vous aiderai à les ajouter si besoin.
+
+Dites-moi sur quel ordinateur vous êtes (Windows ou Mac) et où vous bloquez, et je vous guide étape par étape.
