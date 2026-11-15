@@ -41,3 +41,7 @@ L'iPhone ne peut pas joindre localhost, il lui faut une adresse https publique. 
 	•	Les publications privées ne fonctionnent pas. Certaines publications Instagram peuvent aussi être refusées sans cookies de connexion, et je vous aiderai à les ajouter si besoin.
 
 Dites-moi sur quel ordinateur vous êtes (Windows ou Mac) et où vous bloquez, et je vous guide étape par étape.
+
+
+
+https://earned-aye-booking-characters.trycloudflare.com        
