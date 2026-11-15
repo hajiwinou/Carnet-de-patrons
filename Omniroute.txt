@@ -1,0 +1,17 @@
+Il y a deux parties : lancer OmniRoute quelque part, puis coller son adresse dans l'appli.
+
+1. Lancer OmniRoute (sur un ordinateur)
+
+	1.	Installe Node.js, puis tape npm install -g omniroute et omniroute.
+	2.	Ouvre http://localhost:20128 : c'est le tableau de bord.
+	3.	Va dans Providers et connecte au moins une IA. Les gratuites (Kiro, Qwen, Gemini CLI, Groq…) suffisent pour commencer.
+	4.	Optionnel : crée une clé dans Endpoints. Par défaut, OmniRoute n'en exige pas.
+
+2. Brancher l'appli
+
+	1.	Va dans Réglages > Clés API & Multi-IA > OmniRoute.
+	2.	Colle l'adresse : http://localhost:20128/v1 si l'appli est sur le même ordinateur.
+	3.	Laisse le modèle sur auto, ou mets le nom d'un combo créé dans OmniRoute.
+	4.	Appuie sur Tester.
+
+Si tu utilises l'appli sur iPhone : localhost ne marchera pas, car il désigne le téléphone lui-même. Il te faut une adresse https qui pointe vers ton OmniRoute. Le plus simple est le Cloudflare Quick Tunnel, activable depuis la page Endpoints d'OmniRoute avec Docker. Il te donne une adresse en https://….trycloudflare.com/v1, à coller dans l'appli. Cette adresse change à chaque redémarrage. L'alternative stable est un petit serveur (VPS) avec OmniRoute en Docker.
