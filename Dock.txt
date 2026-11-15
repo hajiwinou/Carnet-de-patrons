@@ -45,3 +45,14 @@ Dites-moi sur quel ordinateur vous êtes (Windows ou Mac) et où vous bloquez, e
 
 
 https://earned-aye-booking-characters.trycloudflare.com        
+& "C:\Program Files\Tailscale\tailscale.exe" serve --bg 9000; @"
+services:
+  cobalt:
+    image: ghcr.io/imputnet/cobalt:11
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      API_URL: "msi.tailff25c4.ts.net"
+"@ | Out-File -FilePath docker-compose.yml -Encoding utf8; docker compose up -d --force-recreate
+
