@@ -1,0 +1,2751 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carnet de patrons</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Variables et thèmes (Clair / Sombre automatique ou manuel) */
+:root {
+  --bg: #F3F4F7;
+  --surface: #FFFFFF;
+  --ink: #1A2030;
+  --muted: #656D7E;
+  --line: #E0E3EA;
+  --accent: #2A47C9;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E7EBFB;
+  --ok: #1B7F52;
+  --ok-soft: #E1F3EA;
+  --warn: #9A5B00;
+  --warn-soft: #FBEFD9;
+  --bad: #B3261E;
+  --bad-soft: #FAE3E1;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151D;
+    --surface: #1A202C;
+    --ink: #E9ECF3;
+    --muted: #9AA3B5;
+    --line: #2B3345;
+    --accent: #8FA3FF;
+    --accent-ink: #101736;
+    --accent-soft: #252E58;
+    --ok: #5CCB93;
+    --ok-soft: #173528;
+    --warn: #E7B65C;
+    --warn-soft: #3A2D12;
+    --bad: #FF8D84;
+    --bad-soft: #3F1B19;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151D;
+  --surface: #1A202C;
+  --ink: #E9ECF3;
+  --muted: #9AA3B5;
+  --line: #2B3345;
+  --accent: #8FA3FF;
+  --accent-ink: #101736;
+  --accent-soft: #252E58;
+  --ok: #5CCB93;
+  --ok-soft: #173528;
+  --warn: #E7B65C;
+  --warn-soft: #3A2D12;
+  --bad: #FF8D84;
+  --bad-soft: #3F1B19;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-text-size-adjust: 100%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+.wrap { max-width: 720px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-head); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: 24px; line-height: 1.15; }
+h2 { font-size: 18px; }
+h3 { font-size: 15px; }
+p { margin: 0; }
+
+.top { display: flex; align-items: center; gap: 12px; padding: 18px 0 12px; min-width: 0; }
+.top h1 { flex: 1; min-width: 0; }
+.sub { color: var(--muted); font-size: 13px; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-weight: 500;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+.btn:active:not([disabled]) { transform: scale(0.98); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.small { min-height: 36px; padding: 0 12px; font-size: 14px; }
+.btn[disabled] { opacity: 0.5; cursor: default; }
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+svg.i { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.stat b { display: block; font-family: var(--font-head); font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 12px; }
+
+.search { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; margin-bottom: 10px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 12.5px;
+  border: 1px solid transparent;
+}
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.mute { background: transparent; border-color: var(--line); color: var(--muted); }
+button.chip { cursor: pointer; min-height: 34px; background: var(--surface); border-color: var(--line); font-size: 13px; padding: 0 12px; }
+button.chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 500; }
+
+.filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; scrollbar-width: none; }
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-bar button.chip { flex: none; }
+
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.25s ease; }
+
+.empty { text-align: center; padding: 36px 12px; color: var(--muted); display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.empty h2 { color: var(--ink); }
+
+label.fl { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+label.fl .n { color: var(--ink); font-weight: 500; font-size: 14px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.in, select.in, textarea.in {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  padding: 8px 10px;
+  color: var(--ink);
+}
+textarea.in { min-height: 84px; resize: vertical; }
+.hint { font-size: 12px; color: var(--muted); }
+.ai { font-size: 11px; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 99px; font-weight: 600; }
+.core { width: 7px; height: 7px; border-radius: 99px; background: var(--accent); display: inline-block; }
+
+details.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+details.sec > summary { list-style: none; padding: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; min-height: 48px; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary h3 { flex: 1; }
+details.sec > summary::after { content: '+'; font-size: 20px; color: var(--muted); }
+details.sec[open] > summary::after { content: '−'; }
+details.sec .body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+
+.seg { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 2px; overflow-x: auto; }
+.seg button { flex: 1; min-height: 38px; border: 0; background: transparent; border-radius: 9px; font-size: 14px; white-space: nowrap; padding: 0 12px; color: var(--muted); }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+.scroll-x { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table.grid { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+table.grid th, table.grid td { padding: 4px; border-bottom: 1px solid var(--line); text-align: center; }
+table.grid th:first-child, table.grid td:first-child {
+  text-align: left;
+  min-width: 150px;
+  padding-left: 10px;
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+table.grid input { width: 58px; min-height: 36px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; text-align: center; padding: 0 4px; color: var(--ink); }
+
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.photo { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.photo img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--line); }
+.photo .pc { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+.chunk { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+.chunk small { color: var(--muted); }
+pre.txt { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-body); margin: 0; font-size: 14px; }
+
+.note { border-radius: 10px; padding: 10px 12px; font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--accent-soft); color: var(--ink); }
+
+/* Zone glisser-déposer */
+.dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 20px 14px;
+  text-align: center;
+  background: var(--bg);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dropzone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: center;
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  z-index: 20;
+}
+.tabbar nav { display: flex; width: 100%; max-width: 720px; }
+.tabbar button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  color: var(--muted);
+  font-size: 11.5px;
+  border-radius: 10px;
+}
+.tabbar button.on { color: var(--accent); font-weight: 600; }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 30;
+  max-width: 90vw;
+  display: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: sp 0.8s linear infinite; display: inline-block; flex: none; }
+@keyframes sp { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+.toggle { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; }
+.toggle input { width: 20px; height: 20px; accent-color: var(--accent); }
+.guide li { margin: 4px 0; }
+.guide ul { margin: 6px 0 0; padding-left: 18px; }
+.num { font-variant-numeric: tabular-nums; }
+input[type=file] { display: none; }
+
+.pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 560px) { .pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.cover { border: 0; padding: 0; background: var(--line); aspect-ratio: 3/4; display: grid; place-items: center; width: 100%; cursor: pointer; overflow: hidden; }
+.cover img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.cover .ph { color: var(--muted); font-size: 13px; text-align: center; padding: 8px; }
+.pinfo { padding: 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; justify-content: space-between; }
+
+.gh { display: flex; align-items: center; gap: 8px; margin: 20px 0 10px; flex-wrap: wrap; }
+.gh h2 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+#viewer { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; }
+.vhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.vtitle { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.vscroll {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px max(12px, env(safe-area-inset-left, 0px)) calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.vpage { background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25); flex: none; width: calc(100% * var(--z, 1)); }
+.vpage canvas { display: block; width: 100%; height: auto; }
+
+.opt { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+.opt .scroll-x { background: var(--surface); }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<div id="toast" role="status"></div>
+
+<!-- Visionneuse PDF plein écran -->
+<div id="viewer" hidden>
+  <div class="vhead">
+    <button class="icon-btn" data-act="vclose" aria-label="Fermer">&#10005;</button>
+    <span class="vtitle" id="vtitle"></span>
+    <span class="sub num" id="vpage"></span>
+    <button class="icon-btn" data-act="vzoomout" aria-label="Réduire">&#8722;</button>
+    <button class="icon-btn" data-act="vzoomin" aria-label="Agrandir">+</button>
+  </div>
+  <div class="vscroll" id="vscroll"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  /* Configuration du worker PDF.js */
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  /* ============ Stockage IndexedDB autonome pour PDF & Photos ============ */
+  var IDB = {
+    db: null,
+    open: function() {
+      var self = this;
+      if (self.db) return Promise.resolve(self.db);
+      return new Promise(function(resolve, reject) {
+        if (!window.indexedDB) return reject(new Error('IndexedDB non supporté'));
+        var req = indexedDB.open('carnet_patrons_db', 1);
+        req.onupgradeneeded = function(e) {
+          var db = e.target.result;
+          if (!db.objectStoreNames.contains('blobs')) {
+            db.createObjectStore('blobs');
+          }
+        };
+        req.onsuccess = function(e) {
+          self.db = e.target.result;
+          resolve(self.db);
+        };
+        req.onerror = function() {
+          reject(req.error || new Error('Erreur IndexedDB'));
+        };
+      });
+    },
+    put: function(id, blob) {
+      return this.open().then(function(db) {
+        return new Promise(function(resolve, reject) {
+          var tx = db.transaction('blobs', 'readwrite');
+          tx.objectStore('blobs').put(blob, id);
+          tx.oncomplete = function() { resolve(id); };
+          tx.onerror = function() { reject(tx.error); };
+        });
+      });
+    },
+    get: function(id) {
+      return this.open().then(function(db) {
+        return new Promise(function(resolve, reject) {
+          var tx = db.transaction('blobs', 'readonly');
+          var req = tx.objectStore('blobs').get(id);
+          req.onsuccess = function() { resolve(req.result || null); };
+          req.onerror = function() { reject(req.error); };
+        });
+      });
+    },
+    del: function(id) {
+      return this.open().then(function(db) {
+        return new Promise(function(resolve) {
+          var tx = db.transaction('blobs', 'readwrite');
+          tx.objectStore('blobs').delete(id);
+          tx.oncomplete = function() { resolve(); };
+          tx.onerror = function() { resolve(); };
+        });
+      });
+    }
+  };
+
+  /* Cache mémoire des Blobs et URLs objet */
+  var blobs = new Map();
+  var blobUrls = new Map();
+
+  function getBlobUrl(id) {
+    if (!id) return '';
+    if (blobUrls.has(id)) return blobUrls.get(id);
+    if (blobs.has(id)) {
+      var u = URL.createObjectURL(blobs.get(id));
+      blobUrls.set(id, u);
+      return u;
+    }
+    return '';
+  }
+
+  async function saveBlob(id, blob) {
+    blobs.set(id, blob);
+    if (blobUrls.has(id)) {
+      URL.revokeObjectURL(blobUrls.get(id));
+      blobUrls.delete(id);
+    }
+    try {
+      await IDB.put(id, blob);
+    } catch (e) {
+      console.warn('Stockage IndexedDB limité:', e);
+    }
+    return id;
+  }
+
+  async function loadBlob(id) {
+    if (!id) return null;
+    if (blobs.has(id)) return blobs.get(id);
+    try {
+      var b = await IDB.get(id);
+      if (b) {
+        blobs.set(id, b);
+        return b;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function resolveLazyImages() {
+    document.querySelectorAll('img[data-blob-id]').forEach(function(img) {
+      var id = img.getAttribute('data-blob-id');
+      if (!id) return;
+      var cached = getBlobUrl(id);
+      if (cached) {
+        if (img.src !== cached) img.src = cached;
+        img.removeAttribute('data-blob-id');
+      } else {
+        loadBlob(id).then(function(b) {
+          if (b && document.body.contains(img)) {
+            img.src = getBlobUrl(id);
+            img.removeAttribute('data-blob-id');
+          }
+        });
+      }
+    });
+  }
+
+  /* ============ Schéma des données ============ */
+  var SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+  var KINDS = [['modele', 'Photo du patron'], ['fini', 'Résultat tricoté'], ['croquis', 'Croquis']];
+  var MEASURES = [
+    ['bust', 'Tour de poitrine fini'], ['waist', 'Tour de taille'], ['hip', 'Tour de hanches'],
+    ['length', 'Longueur totale'], ['back_len', 'Longueur jusqu\'à l\'emmanchure'], ['armhole', 'Hauteur d\'emmanchure'],
+    ['shoulder', 'Largeur d\'épaules'], ['neck_w', 'Largeur d\'encolure'], ['sleeve', 'Longueur de manche'],
+    ['upper_arm', 'Tour de bras'], ['wrist', 'Tour de poignet'], ['hem_h', 'Hauteur des côtes du bas']
+  ];
+  var COUNTS = [
+    ['caston', 'Montage du corps'], ['chest', 'Mailles au tour de poitrine'], ['waist', 'Mailles à la taille'],
+    ['hip', 'Mailles aux hanches'], ['sl_caston', 'Montage des manches'], ['sl_max', 'Mailles de manche (max)'],
+    ['neck', 'Mailles d\'encolure'], ['shoulder', 'Mailles par épaule'], ['rows_body', 'Rangs du corps'],
+    ['rows_sleeve', 'Rangs de manche'], ['yarn_m', 'Métrage nécessaire (m)']
+  ];
+  var CORE_ROWS = { measures: ['bust', 'length', 'shoulder', 'sleeve'], counts: ['caston', 'chest'] };
+
+  var GROUPDEF = {
+    'Manches': { fields: ['sleeves', 'sleeve_shape', 'cuffs'], m: ['sleeve', 'upper_arm', 'wrist'], c: ['sl_caston', 'sl_max', 'rows_sleeve'] },
+    'Encolure': { fields: ['neckline', 'neck_finish'], m: ['neck_w'], c: ['neck'] },
+    'Bas et longueur': { fields: ['length', 'hem'], m: ['length', 'back_len', 'hem_h'], c: ['caston', 'hip', 'rows_body'] },
+    'Fermeture': { fields: ['closure', 'buttons'], m: [], c: [] },
+    'Poches': { fields: ['pockets'], m: [], c: [] },
+    'Finitions': { fields: ['hem', 'cuffs', 'neck_finish', 'bind_off', 'blocking'], m: [], c: [] },
+    'Autre': { fields: [], m: [], c: [] }
+  };
+  var GROUP_NAMES = Object.keys(GROUPDEF);
+
+  var SCHEMA = [
+    {
+      id: 'ident', t: 'Identité du patron',
+      why: 'Classe le patron et permet de filtrer les données par type de vêtement et de niveau.',
+      f: [
+        { k: 'designer', l: 'Créateur·rice', t: 'text' },
+        { k: 'language', l: 'Langue du patron', t: 'select', o: ['Français', 'Anglais', 'Autre'], core: 1 },
+        { k: 'garment', l: 'Type de vêtement', t: 'select', o: ['Pull', 'Cardigan', 'Gilet sans manches', 'Top / débardeur', 'Robe', 'Jupe', 'Bonnet', 'Écharpe / snood', 'Châle', 'Chaussettes', 'Mitaines / gants', 'Couverture', 'Sac', 'Autre'], core: 1 },
+        { k: 'target', l: 'Public', t: 'select', o: ['Femme', 'Homme', 'Enfant', 'Bébé', 'Unisexe'], core: 1 },
+        { k: 'difficulty', l: 'Niveau', t: 'select', o: ['Débutant', 'Facile', 'Intermédiaire', 'Avancé'], core: 1 },
+        { k: 'season', l: 'Saison', t: 'select', o: ['Été', 'Mi-saison', 'Hiver', 'Toute saison'] }
+      ]
+    },
+    {
+      id: 'shape', t: 'Silhouette et coupe',
+      why: 'Ce que l\'IA doit reconnaître sur une photo ou un croquis pour choisir la bonne construction.',
+      f: [
+        { k: 'silhouette', l: 'Silhouette', t: 'select', o: ['Droite', 'Trapèze', 'Ajustée', 'Boxy', 'Oversize', 'Cropped', 'Longue / tunique'], core: 1 },
+        { k: 'ease_cm', l: 'Aisance au buste', t: 'number', u: 'cm', h: 'Positif = ample, négatif = ajusté', core: 1 },
+        { k: 'length', l: 'Longueur du vêtement', t: 'select', o: ['Cropped (au-dessus de la taille)', 'Taille', 'Hanches', 'Mi-cuisse', 'Genou ou plus'], core: 1 },
+        { k: 'neckline', l: 'Encolure', t: 'select', o: ['Rond', 'V', 'Bateau', 'Carré', 'Col roulé', 'Col montant', 'Col châle', 'Capuche', 'Ouvert (sans col)'], core: 1 },
+        { k: 'sleeves', l: 'Manches', t: 'select', o: ['Longues', '3/4', 'Courtes', 'Sans manches', 'Bretelles'], core: 1 },
+        { k: 'sleeve_shape', l: 'Forme des manches', t: 'select', o: ['Droite', 'Ajustée', 'Évasée', 'Ballon', 'Chauve-souris', 'Raglan effilé'] },
+        { k: 'shoulder', l: 'Type d\'épaule', t: 'select', o: ['Tombante (drop)', 'Montée (set-in)', 'Raglan', 'Empiècement rond (yoke)', 'Saddle'], core: 1 },
+        { k: 'construction', l: 'Construction', t: 'select', o: ['De haut en bas, sans couture', 'De bas en haut, sans couture', 'À plat, pièces cousues', 'Une seule pièce', 'De côté en côté'], core: 1 },
+        { k: 'shaping_notes', l: 'Notes de forme', t: 'long', h: 'Taille cintrée, dos plus long, fentes latérales…' }
+      ]
+    },
+    {
+      id: 'sizes', t: 'Tailles et mesures',
+      why: 'La base du patron multi-tailles. Les tableaux relient chaque taille à des mesures finies et à des nombres de mailles.',
+      f: [
+        { k: 'sizes', l: 'Tailles proposées', t: 'multi', o: SIZES, core: 1 },
+        { k: 'size_system', l: 'Système de tailles du patron', t: 'select', o: ['Tailles vêtement (XS à 3XL)', 'Tour de poitrine (cm)', 'Âge enfant'] },
+        { k: 'model_size', l: 'Taille portée sur la photo', t: 'text', core: 1 },
+        { k: 'model_info', l: 'Mensurations du modèle', t: 'text', h: 'Taille, tour de poitrine…' },
+        { k: 'size_map', l: 'Noms des tailles dans le patron', t: 'text', h: 'Ex. : XS = 34, S = 36, M = 38' },
+        { k: '@measures' },
+        { k: '@counts' }
+      ]
+    },
+    {
+      id: 'gauge', t: 'Échantillon',
+      why: 'Permet de recalculer les mailles pour n\'importe quel échantillon (multi-gauge).',
+      f: [
+        { k: 'gauge_sts', l: 'Mailles pour 10 cm', t: 'number', core: 1 },
+        { k: 'gauge_rows', l: 'Rangs pour 10 cm', t: 'number', core: 1 },
+        { k: 'gauge_stitch', l: 'Point de l\'échantillon', t: 'select', o: ['Jersey', 'Côtes 1/1', 'Côtes 2/2', 'Point mousse', 'Point de riz', 'Point fantaisie', 'Torsades', 'Jacquard'], core: 1 },
+        { k: 'needle_mm', l: 'Aiguilles', t: 'number', u: 'mm', core: 1 },
+        { k: 'needle_type', l: 'Type d\'aiguilles', t: 'select', o: ['Circulaire', 'Droites', 'Double pointes', 'Mixte'] },
+        { k: 'gauge_blocked', l: 'Mesuré', t: 'select', o: ['Après blocage', 'Avant blocage'], core: 1 },
+        { k: 'gauge_range', l: 'Autres échantillons proposés', t: 'text', h: 'Ex. : 18 m. = tailles XS–S' }
+      ]
+    },
+    {
+      id: 'yarn', t: 'Fil',
+      why: 'Associe un échantillon et un rendu (tombé, volume) à un type de fil.',
+      f: [
+        { k: 'yarn_name', l: 'Fil utilisé', t: 'text', core: 1 },
+        { k: 'yarn_weight', l: 'Grosseur du fil', t: 'select', o: ['Dentelle', 'Fingering / 4 plis', 'Sport', 'DK', 'Worsted', 'Aran', 'Bulky', 'Super bulky'], core: 1 },
+        { k: 'yarn_fiber', l: 'Composition', t: 'text', core: 1 },
+        { k: 'yarn_meters', l: 'Mètres pour 100 g', t: 'number' },
+        { k: 'yarn_colors', l: 'Nombre de couleurs', t: 'number' },
+        { k: 'yarn_sub', l: 'Substituts conseillés', t: 'long' }
+      ]
+    },
+    {
+      id: 'stitches', t: 'Points et techniques',
+      why: 'Liste ce que l\'IA devra savoir écrire : points, répétitions, augmentations, diminutions, montage.',
+      f: [
+        { k: 'stitches', l: 'Points utilisés', t: 'multi', o: ['Jersey', 'Côtes', 'Point mousse', 'Point de riz', 'Torsades', 'Ajouré', 'Jacquard', 'Intarsia', 'Mailles glissées', 'Bobbles', 'Rayures', 'Boutonnières'], core: 1 },
+        { k: 'repeat', l: 'Multiple de mailles', t: 'text', h: 'Ex. : multiple de 4 + 2' },
+        { k: 'cast_on', l: 'Montage', t: 'select', o: ['Classique', 'Italien', 'Provisoire', 'Tubulaire', 'Au crochet', 'Autre'] },
+        { k: 'increases', l: 'Augmentations', t: 'text', h: 'Ex. : M1L / M1R, jetés' },
+        { k: 'decreases', l: 'Diminutions', t: 'text', h: 'Ex. : 2 m. ens., surjet simple' },
+        { k: 'short_rows', l: 'Rangs raccourcis', t: 'select', o: ['Non', 'Oui, rangs raccourcis', 'Oui, allemands (DS)', 'Oui, wrap & turn'] },
+        { k: 'charts', l: 'Présentation des motifs', t: 'select', o: ['Texte seulement', 'Diagrammes seulement', 'Texte et diagrammes'], core: 1 }
+      ]
+    },
+    {
+      id: 'finish', t: 'Finitions',
+      why: 'Les finitions changent le rendu final : elles doivent être décrites séparément pour pouvoir être choisies.',
+      f: [
+        { k: 'hem', l: 'Bas du vêtement', t: 'text', core: 1 },
+        { k: 'cuffs', l: 'Poignets', t: 'text' },
+        { k: 'neck_finish', l: 'Finition de l\'encolure', t: 'text', core: 1 },
+        { k: 'closure', l: 'Fermeture', t: 'text', h: 'Boutons, zip, aucune…' },
+        { k: 'buttons', l: 'Nombre de boutons', t: 'number' },
+        { k: 'pockets', l: 'Poches', t: 'select', o: ['Aucune', 'Plaquées', 'Invisibles', 'Fentes'] },
+        { k: 'bind_off', l: 'Rabat', t: 'select', o: ['Classique', 'Élastique', 'Tubulaire', 'Autre'] },
+        { k: 'assembly', l: 'Ordre d\'assemblage', t: 'long' },
+        { k: 'blocking', l: 'Blocage', t: 'text' }
+      ]
+    },
+    {
+      id: 'writing', t: 'Rédaction du patron',
+      why: 'Définit le style d\'écriture que l\'IA devra reproduire pour que le patron reste fluide à lire.',
+      f: [
+        { k: 'notation', l: 'Notation', t: 'select', o: ['Abréviations françaises', 'Abréviations anglaises', 'Mots complets'] },
+        { k: 'structure', l: 'Écriture des tailles', t: 'select', o: ['Une section par taille', 'Toutes les tailles entre parenthèses', 'Tableau par taille'], core: 1 },
+        { k: 'parts', l: 'Parties du patron', t: 'text', h: 'Dos, devant, manches, finitions…', core: 1 },
+        { k: 'abbrev', l: 'Glossaire du patron', t: 'long' },
+        { k: 'errata', l: 'Erreurs connues', t: 'long' }
+      ]
+    },
+    {
+      id: 'result', t: 'Résultat tricoté',
+      why: 'Compare le patron à la réalité. C\'est ce qui apprend à l\'IA si un patron donne bien l\'objet de la photo.',
+      f: [
+        { k: 'r_size', l: 'Taille tricotée', t: 'text' },
+        { k: 'r_sts', l: 'Mailles obtenues pour 10 cm', t: 'number' },
+        { k: 'r_rows', l: 'Rangs obtenus pour 10 cm', t: 'number' },
+        { k: 'r_bust', l: 'Tour de poitrine mesuré', t: 'number', u: 'cm' },
+        { k: 'r_length', l: 'Longueur mesurée', t: 'number', u: 'cm' },
+        { k: 'r_fit', l: 'Écart au patron', t: 'select', o: ['Conforme', 'Plus petit', 'Plus grand', 'Plus court', 'Plus long'] },
+        { k: 'r_rating', l: 'Conformité à la photo (1 à 5)', t: 'select', o: ['1', '2', '3', '4', '5'], core: 1 },
+        { k: 'r_hours', l: 'Heures de tricot', t: 'number' },
+        { k: 'r_yarn', l: 'Fil réellement utilisé', t: 'text' },
+        { k: 'r_mods', l: 'Modifications faites', t: 'long' },
+        { k: 'r_issues', l: 'Problèmes rencontrés', t: 'long' }
+      ]
+    }
+  ];
+
+  var ALLF = [];
+  SCHEMA.forEach(function(s) {
+    s.f.forEach(function(f) {
+      if (f.k[0] !== '@') ALLF.push(f);
+    });
+  });
+  var PHOTO_KEYS = ['garment', 'target', 'silhouette', 'length', 'neckline', 'sleeves', 'sleeve_shape', 'shoulder', 'construction', 'stitches', 'hem', 'cuffs', 'neck_finish', 'closure', 'pockets', 'yarn_weight', 'shaping_notes'];
+
+  /* ============ État applicatif ============ */
+  function load(k, d) {
+    try {
+      var v = localStorage.getItem(k);
+      return v ? JSON.parse(v) : d;
+    } catch (e) {
+      return d;
+    }
+  }
+  function keep(k, v) {
+    try {
+      localStorage.setItem(k, JSON.stringify(v));
+    } catch (e) {}
+  }
+
+  var S = {
+    theme: load('carnet.theme', 'auto'),
+    group: load('carnet.group', 'all'),
+    fStatus: 'all',
+    fDiff: 'all',
+    folders: load('carnet.folders', []),
+    renameId: null,
+    delF: null,
+    tab: 'lib',
+    cur: null,
+    sub: 'fiche',
+    tv: 'chunks',
+    q: '',
+    patterns: load('carnet.patterns', []),
+    open: { ident: 1 },
+    log: [],
+    busy: '',
+    loaded: true,
+    opts: Object.assign({ expand: false, headers: true, min: 20, max: 30, auto: true, autoFile: '', apiKey: '' }, load('carnet.opts', {})),
+    exp: { valid: false, photos: true },
+    sim: { sts: '', rows: '' },
+    delAsk: false
+  };
+
+  var thumbTried = {}, thumbQ = false;
+  var V = { id: null, pdf: null, zoom: 1, pages: [], running: false, again: false };
+  var pdfs = new Map(), procCache = new Map(), saveTimers = {};
+
+  function applyTheme() {
+    var root = document.documentElement;
+    if (S.theme === 'light') root.setAttribute('data-theme', 'light');
+    else if (S.theme === 'dark') root.setAttribute('data-theme', 'dark');
+    else root.removeAttribute('data-theme');
+  }
+  applyTheme();
+
+  function $(s, el) { return (el || document).querySelector(s); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function cur() { return S.patterns.find(function(p) { return p.id === S.cur; }); }
+
+  var tt;
+  function toast(m) {
+    var t = $('#toast');
+    t.textContent = m;
+    t.style.display = 'block';
+    clearTimeout(tt);
+    tt = setTimeout(function() { t.style.display = 'none'; }, 3400);
+  }
+
+  var ICON = {
+    lib: '<path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/>',
+    add: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    exp: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/>',
+    guide: '<path d="M8 6h12M8 12h12M8 18h12"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+    moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>'
+  };
+  function ico(n) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
+
+  /* ============ Persistance localStorage ============ */
+  function lite(p) {
+    var q = JSON.parse(JSON.stringify(p));
+    delete q._v;
+    return q;
+  }
+  function saveSoon(p) {
+    clearTimeout(saveTimers[p.id]);
+    saveTimers[p.id] = setTimeout(function() { persist(p); }, 500);
+  }
+  function persist() {
+    try {
+      var list = S.patterns.map(lite);
+      var rawJson = JSON.stringify(list);
+      if (rawJson.length > 4200000) {
+        toast('Espace local presque saturé : raccourcissement automatique des textes bruts anciens.');
+        for (var i = list.length - 1; i >= 0 && JSON.stringify(list).length > 4000000; i--) {
+          if (list[i].raw && list[i].raw.length > 30000) {
+            list[i].raw = list[i].raw.slice(0, 30000);
+          }
+        }
+      }
+      keep('carnet.patterns', list);
+    } catch (e) {
+      toast('Enregistrement local impossible (quota navigateur atteint). Exportez une sauvegarde.');
+    }
+  }
+  function removeP(p) {
+    if (p.source && p.source.pdf) IDB.del(p.source.pdf);
+    if (p.thumb) IDB.del(p.thumb);
+    (p.photos || []).forEach(function(ph) { if (ph.id) IDB.del(ph.id); });
+    S.patterns = S.patterns.filter(function(x) { return x.id !== p.id; });
+    persist();
+  }
+  function saveFolders() { keep('carnet.folders', S.folders); }
+
+  /* ============ Traitement et nettoyage du texte ============ */
+  var ABBR = [
+    [/\bk2tog\b/gi, '2 mailles ensemble à l\'endroit (k2tog)'],
+    [/\bp2tog\b/gi, '2 mailles ensemble à l\'envers (p2tog)'],
+    [/\bssk\b/gi, 'surjet simple (ssk)'],
+    [/\byo\b/gi, 'jeté (yo)'],
+    [/\bm1l\b/gi, 'augmentation inclinée à gauche (m1l)'],
+    [/\bm1r\b/gi, 'augmentation inclinée à droite (m1r)'],
+    [/\bsts\b/gi, 'mailles'],
+    [/\brnds?\b/gi, 'tour'],
+    [/\brep\b/gi, 'répéter'],
+    [/\bfoll\b/gi, 'suivant'],
+    [/\bbeg\b/gi, 'début'],
+    [/\bcont\b/gi, 'continuer'],
+    [/\binc\b/gi, 'augmenter'],
+    [/\bdec\b/gi, 'diminuer'],
+    [/\balt\b/gi, 'alterner'],
+    [/\bapprox\b/gi, 'environ'],
+    [/\bpatt\b/gi, 'motif'],
+    [/\brs\b/g, 'endroit de l\'ouvrage'],
+    [/\bws\b/g, 'envers de l\'ouvrage'],
+    [/\bend\.(?=\s|$)/gi, 'endroit'],
+    [/\benv\.(?=\s|$)/gi, 'envers'],
+    [/\bjers\.(?=\s|$)/gi, 'jersey'],
+    [/\baug\.(?=\s|$)/gi, 'augmentation'],
+    [/\bdim\.(?=\s|$)/gi, 'diminution'],
+    [/\brgs?\b\.?/gi, 'rang']
+  ];
+
+  function cleanText(raw, o) {
+    var pages = String(raw || '').split('\f').map(function(s) {
+      return s.split('\n').map(function(l) { return l.trim(); });
+    });
+    if (o.headers && pages.length >= 3) {
+      var cnt = new Map(), key = function(l) { return l.replace(/\d+/g, '#').toLowerCase(); };
+      pages.forEach(function(pg) {
+        var ed = new Set(pg.slice(0, 2).concat(pg.slice(-2)).filter(Boolean).map(key));
+        ed.forEach(function(k) { cnt.set(k, (cnt.get(k) || 0) + 1); });
+      });
+      var th = Math.max(2, Math.ceil(pages.length * 0.5));
+      pages = pages.map(function(pg) {
+        return pg.filter(function(l, i) {
+          if (!l) return true;
+          var edge = i < 2 || i >= pg.length - 2;
+          return !(edge && cnt.get(key(l)) >= th && l.length < 90);
+        });
+      });
+    }
+    var t = pages.map(function(pg) { return pg.join('\n'); }).join('\n');
+    t = t.normalize('NFC').replace(/[\u00AD]/g, '').replace(/ﬁ/g, 'fi').replace(/ﬂ/g, 'fl').replace(/\u00A0/g, ' ')
+      .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/[•▪●◦]\s*/g, '- ')
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+    t = t.replace(/^\s*(?:page\s*)?\d{1,3}\s*(?:\/|sur|of)?\s*\d{0,3}\s*$/gim, '');
+    t = t.replace(/([a-zà-ÿ])-\n([a-zà-ÿ])/g, '$1$2');
+    t = t.replace(/([^\n.:;!?)\]])\n(?=[a-zàâçéèêëîïôûùüÿœ(])/g, '$1 ');
+    t = t.replace(/(\d),(\d+)(\s*(?:mm|cm|m|g|kg|%))/g, '$1.$2$3')
+      .replace(/(\d)\s*(?:millim[eè]tres?|mm)\b/gi, '$1 mm')
+      .replace(/(\d)\s*(?:centim[eè]tres?|cm)\b/gi, '$1 cm');
+    if (o.expand) ABBR.forEach(function(a) { t = t.replace(a[0], a[1]); });
+    t = t.split('\n').map(function(l) { return l.replace(/[ \t]+/g, ' ').trim(); }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return t;
+  }
+
+  var HEAD = /^(taille|tailles|dos|devant|manches?|encolure|finitions?|montage|empi[eè]cement|assemblage|body|back|front|sleeves?|neck|neckline|yoke|finishing|assembly|mat[eé]riel|fournitures|[eé]chantillon|gauge|abr[eé]viations|materials)\b.{0,32}$/i;
+  function isHeading(l) {
+    return l.length < 46 && !/[.;]$/.test(l) && (HEAD.test(l) || (/^[A-ZÉÈÀÂÊÎÔÛÇ0-9 '\/&:-]{4,}$/.test(l) && /[A-ZÉÈÀ]{3}/.test(l)));
+  }
+
+  function chunkText(clean, o) {
+    var min = Math.max(5, +o.min || 20), max = Math.max(min + 2, +o.max || 30), out = [], section = '', buf = [];
+    function flush() {
+      if (buf.length) {
+        out.push({ section: section, text: buf.join(' '), words: buf.length });
+        buf = [];
+      }
+    }
+    function units(s) {
+      var w = s.split(/\s+/).filter(Boolean);
+      if (w.length <= max) return [w];
+      var parts = s.replace(/([,;:])\s+/g, '$1\u0001').split('\u0001'), res = [];
+      parts.forEach(function(p) {
+        var pw = p.split(/\s+/).filter(Boolean);
+        for (var i = 0; i < pw.length; i += max) res.push(pw.slice(i, i + max));
+      });
+      return res;
+    }
+    clean.split('\n').forEach(function(line) {
+      line = line.trim();
+      if (!line) { flush(); return; }
+      if (isHeading(line)) { flush(); section = line.replace(/:$/, ''); return; }
+      if (/^(rang|tour|row|rnd|rd)\b/i.test(line) && buf.length >= min / 2) flush();
+      line.replace(/([.!?])\s+(?=[A-ZÉÈÀ0-9*(\[])/g, '$1\u0001').split('\u0001').forEach(function(sent) {
+        units(sent).forEach(function(w) {
+          if (buf.length + w.length > max) flush();
+          buf = buf.concat(w);
+          if (buf.length >= min) flush();
+        });
+      });
+    });
+    flush();
+    return out.map(function(c, i) { c.i = i + 1; return c; });
+  }
+
+  function proc(p) {
+    var k = p.id + '|' + (p.raw || '').length + '|' + (p._v || 0) + '|' + JSON.stringify(S.opts);
+    var c = procCache.get(k);
+    if (!c) {
+      var clean = cleanText(p.raw || '', S.opts);
+      c = { clean: clean, chunks: chunkText(clean, S.opts) };
+      procCache.set(k, c);
+    }
+    return c;
+  }
+
+  /* ============ PDF & Images ============ */
+  async function pdfToPages(file) {
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise, pages = [];
+    for (var n = 1; n <= pdf.numPages; n++) {
+      var page = await pdf.getPage(n), tc = await page.getTextContent(), rows = [];
+      tc.items.forEach(function(it) {
+        if (!it.str) return;
+        var y = Math.round(it.transform[5]), x = it.transform[4], row = rows.find(function(r) { return Math.abs(r.y - y) <= 2; });
+        if (!row) { row = { y: y, items: [] }; rows.push(row); }
+        row.items.push({ x: x, s: it.str, w: it.width });
+      });
+      rows.sort(function(a, b) { return b.y - a.y; });
+      pages.push(rows.map(function(r) {
+        r.items.sort(function(a, b) { return a.x - b.x; });
+        var s = '', px = null;
+        r.items.forEach(function(it) {
+          if (px !== null && it.x - px > 1.5 && !/^\s/.test(it.s) && !/\s$/.test(s)) s += ' ';
+          s += it.s;
+          px = it.x + it.w;
+        });
+        return s.replace(/\s+/g, ' ').trim();
+      }).filter(Boolean));
+    }
+    return { pages: pages, pdf: pdf };
+  }
+
+  async function shrink(file, max) {
+    var bmp;
+    try {
+      bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    } catch (e) {
+      bmp = await new Promise(function(res, rej) {
+        var im = new Image();
+        im.onload = function() { res(im); };
+        im.onerror = rej;
+        im.src = URL.createObjectURL(file);
+      });
+    }
+    var w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight, r = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * r);
+    c.height = Math.round(h * r);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise(function(res) { c.toBlob(function(b) { res(b); }, 'image/jpeg', 0.86); });
+  }
+
+  async function addPhotos(p, files, kind) {
+    S.busy = 'Enregistrement des photos…';
+    render();
+    var n = 0;
+    for (var i = 0; i < files.length; i++) {
+      try {
+        var b = await shrink(files[i], 1600);
+        var id = 'img_' + uid();
+        await saveBlob(id, b);
+        p.photos = (p.photos || []).concat([{ id: id, kind: kind }]);
+        n++;
+      } catch (e) {
+        toast('Photo ignorée (' + ((e && e.message) || 'erreur') + ')');
+      }
+    }
+    S.busy = '';
+    persist();
+    render();
+    if (n) toast(n + ' photo(s) ajoutée(s).');
+  }
+
+  function blobToBase64(blob) {
+    return new Promise(function(resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function() {
+        var res = String(fr.result || '');
+        var idx = res.indexOf(',');
+        resolve(idx >= 0 ? res.slice(idx + 1) : res);
+      };
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  /* ============ Appels Gemini API (Texte, JSON structuré, Vision/OCR) ============ */
+  async function callGemini(prompt, options) {
+    options = options || {};
+    var apiKey = (S.opts.apiKey || '').trim();
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + encodeURIComponent(apiKey);
+    var parts = [{ text: prompt }];
+
+    if (options.images && options.images.length) {
+      for (var i = 0; i < options.images.length; i++) {
+        var b = options.images[i];
+        var b64 = await blobToBase64(b);
+        parts.push({
+          inlineData: {
+            mimeType: b.type || 'image/jpeg',
+            data: b64
+          }
+        });
+      }
+    }
+
+    var payload = {
+      contents: [{ role: 'user', parts: parts }]
+    };
+    if (options.json) {
+      payload.generationConfig = { responseMimeType: 'application/json' };
+    }
+
+    var delays = [1000, 2000, 4000];
+    var lastErr = null;
+    for (var attempt = 0; attempt <= delays.length; attempt++) {
+      if (options.signal && options.signal.aborted) {
+        var ae = new Error('Annulé');
+        ae.code = 'cancelled';
+        throw ae;
+      }
+      try {
+        var resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: options.signal
+        });
+        if (resp.status === 429 && attempt < delays.length) {
+          await new Promise(function(r) { setTimeout(r, delays[attempt]); });
+          continue;
+        }
+        var data = await resp.json().catch(function() { return null; });
+        if (!resp.ok) {
+          var errMsg = (data && data.error && data.error.message) || ('Erreur HTTP ' + resp.status);
+          var err = new Error(errMsg);
+          err.status = resp.status;
+          throw err;
+        }
+        var text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+        if (!text) throw new Error('Réponse vide de l\'IA');
+        if (options.json) {
+          var cleanJson = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+          return JSON.parse(cleanJson);
+        }
+        return text;
+      } catch (e) {
+        if (e && e.name === 'AbortError') {
+          e.code = 'cancelled';
+          throw e;
+        }
+        lastErr = e;
+        if (attempt < delays.length && (!e.status || e.status >= 500)) {
+          await new Promise(function(r) { setTimeout(r, delays[attempt]); });
+        } else {
+          break;
+        }
+      }
+    }
+    throw lastErr || new Error('Échec de la requête IA');
+  }
+
+  function aiMsg(e) {
+    if (!e) return 'L\'analyse a échoué.';
+    if (e.code === 'cancelled') return 'Analyse annulée.';
+    if (e.status === 400 || e.status === 403) return 'Clé API manquante ou refusée. Vous pouvez en saisir une dans l\'onglet « Ajouter » > Réglages IA.';
+    if (e.status === 429) return 'Trop de demandes. Réessayez dans quelques instants.';
+    return 'Erreur IA : ' + (e.message || 'réessayez');
+  }
+
+  /* ============ Création, détection heuristique et contrôles ============ */
+  function guessAuthor(t) {
+    t = String(t || '').slice(0, 8000);
+    var cues = /(editor and designer|designed by|design by|designer|pattern by|created by|conçu par|créé par|modèle de|créatrice|créateur)\s*:?\s*/ig, m;
+    while ((m = cues.exec(t))) {
+      var rest = t.slice(m.index + m[0].length, m.index + m[0].length + 70);
+      var n = rest.match(/^([A-ZÀ-Ý][\p{L}'’.-]+(?:[ \t]+[A-ZÀ-Ý][\p{L}'’.-]+){0,3})/u);
+      if (n) return n[1].trim().replace(/[.,;:]+$/, '');
+    }
+    var c = t.match(/©\s*(?:\d{4}\s*)?([A-ZÀ-Ý][\p{L}'’.-]+(?:[ \t]+[A-ZÀ-Ý][\p{L}'’.-]+){0,2})/u);
+    return c ? c[1].trim() : '';
+  }
+
+  var GARMENT_RE = [
+    [/cardigan|gilet\b/i, 'Cardigan'], [/sweater|pullover|jumper|\bpull\b/i, 'Pull'],
+    [/\b(?:hat|beanie|bonnet)\b/i, 'Bonnet'], [/scarf|snood|[eé]charpe|cowl/i, 'Écharpe / snood'],
+    [/shawl|ch[aâ]le/i, 'Châle'], [/\bsocks?\b|chaussettes/i, 'Chaussettes'],
+    [/mittens?|gloves?|mitaines|gants/i, 'Mitaines / gants'], [/blanket|couverture|plaid/i, 'Couverture'],
+    [/\bdress\b|\brobe\b/i, 'Robe'], [/\bskirt\b|\bjupe\b/i, 'Jupe'],
+    [/\b(?:tank|top|d[eé]bardeur)\b/i, 'Top / débardeur'], [/\bvest\b/i, 'Gilet sans manches'],
+    [/\bbag\b|\bsac\b/i, 'Sac']
+  ];
+  function guessGarment(t) {
+    t = String(t || '').slice(0, 4000);
+    for (var i = 0; i < GARMENT_RE.length; i++) if (GARMENT_RE[i][0].test(t)) return GARMENT_RE[i][1];
+    return '';
+  }
+
+  function newPattern(title, raw, source) {
+    var p = {
+      id: uid(),
+      title: title || 'Patron sans titre',
+      created: Date.now(),
+      status: 'brouillon',
+      source: source || {},
+      raw: raw || '',
+      f: {},
+      g: { measures: {}, counts: {} },
+      photos: [],
+      ai: {},
+      ev: {},
+      gai: {},
+      opts: []
+    };
+    var a = guessAuthor(raw);
+    if (a) { p.f.designer = a; p.ai.designer = 1; p.ev.designer = 'Repéré dans le texte du patron'; }
+    var g = guessGarment((title || '') + ' ' + (raw || '').slice(0, 1500));
+    if (g) { p.f.garment = g; p.ai.garment = 1; p.ev.garment = 'Déduit du titre et du texte'; }
+    return p;
+  }
+
+  function gkey(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+  function normAuthor(s) { return String(s || '').replace(/\s+/g, ' ').replace(/[.,;:]+$/, '').trim(); }
+
+  function folderFor(name) {
+    var k = gkey(name), f = S.folders.find(function(x) { return gkey(x.name) === k; });
+    if (!f) {
+      f = { id: 'd' + uid(), name: name, created: Date.now() };
+      S.folders.push(f);
+      saveFolders();
+    }
+    return f;
+  }
+  function autoFile(p, mode) {
+    var name = mode === 'author' ? normAuthor(p.f.designer) : String(p.f.garment || '');
+    if (!name || p.folder) return false;
+    p.folder = folderFor(name).id;
+    persist();
+    return true;
+  }
+  function autoFileAll(mode) {
+    var n = 0;
+    S.patterns.forEach(function(p) { if (autoFile(p, mode)) n++; });
+    toast(n ? n + ' patron(s) classé(s).' : 'Rien à classer : renseignez ' + (mode === 'author' ? 'l\'auteur' : 'la pièce') + ' dans les fiches.');
+  }
+
+  function filled(v) { return Array.isArray(v) ? v.length > 0 : (v !== undefined && v !== null && v !== ''); }
+  function completeness(p) {
+    var tot = 0, done = 0;
+    ALLF.forEach(function(f) { if (f.core) { tot++; if (filled(p.f[f.k])) done++; } });
+    var sizes = p.f.sizes || [];
+    ['measures', 'counts'].forEach(function(g) {
+      CORE_ROWS[g].forEach(function(r) {
+        sizes.forEach(function(s) {
+          tot++;
+          var v = (p.g[g][r] || {})[s];
+          if (filled(v)) done++;
+        });
+      });
+    });
+    tot += 2;
+    var ph = p.photos || [];
+    if (ph.some(function(x) { return x.kind !== 'fini'; })) done++;
+    if (ph.some(function(x) { return x.kind === 'fini'; })) done++;
+    return tot ? done / tot : 0;
+  }
+
+  function checks(p) {
+    var out = [], f = p.f, sizes = f.sizes || [], g = p.g, gs = +f.gauge_sts, gr = +f.gauge_rows;
+    if (!(p.raw || '').trim()) out.push(['bad', 'Aucun texte de patron. Importez un PDF ou collez le texte.']);
+    if (!gs || !gr) out.push(['bad', 'Échantillon incomplet : indiquez les mailles et les rangs pour 10 cm.']);
+    if (!sizes.length) out.push(['bad', 'Aucune taille sélectionnée.']);
+    MEASURES.forEach(function(m) {
+      var vals = sizes.map(function(s) { return [s, +(g.measures[m[0]] || {})[s]]; }).filter(function(x) { return x[1]; });
+      for (var i = 1; i < vals.length; i++) {
+        if (vals[i][1] < vals[i - 1][1]) {
+          out.push(['warn', m[1] + ' : la taille ' + vals[i][0] + ' (' + vals[i][1] + ') est plus petite que ' + vals[i - 1][0] + ' (' + vals[i - 1][1] + ').']);
+          break;
+        }
+      }
+    });
+    var okc = 0;
+    if (gs) sizes.forEach(function(s) {
+      var b = +(g.measures.bust || {})[s], c = +(g.counts.chest || {})[s];
+      if (b && c) {
+        var w = c / gs * 10, d = Math.abs(w - b) / b;
+        if (d > 0.04) out.push(['warn', 'Taille ' + s + ' : ' + c + ' mailles donnent environ ' + Math.round(w) + ' cm avec cet échantillon, le tableau indique ' + b + ' cm (écart ' + Math.round(d * 100) + ' %).']);
+        else okc++;
+      }
+    });
+    if (okc) out.push(['ok', okc + ' taille(s) : mailles et tour de poitrine concordent avec l\'échantillon.']);
+    sizes.forEach(function(s) {
+      var a = +(g.counts.caston || {})[s];
+      if (a && a % 2 && /c[oô]tes/i.test(f.hem || '')) out.push(['warn', 'Taille ' + s + ' : montage de ' + a + ' mailles (impair) pour des côtes, à vérifier.']);
+    });
+    var rs = +f.r_sts;
+    if (gs && rs && Math.abs(rs - gs) / gs > 0.05) out.push(['warn', 'Échantillon obtenu (' + rs + ') différent du patron (' + gs + ') : utilisez le simulateur ci-dessous.']);
+    var ph = p.photos || [];
+    if (!ph.some(function(x) { return x.kind !== 'fini'; })) out.push(['warn', 'Pas de photo ni de croquis du patron.']);
+    if (!ph.some(function(x) { return x.kind === 'fini'; })) out.push(['warn', 'Pas de photo du résultat tricoté : ce patron ne servira que pour la lecture, pas pour la vérification.']);
+    if (filled(f.r_rating) && !ph.some(function(x) { return x.kind === 'fini'; })) out.push(['warn', 'Une note est donnée sans photo du résultat.']);
+    (p.opts || []).forEach(function(o) {
+      if (!o.name) out.push(['warn', 'Une option du groupe « ' + o.group + ' » n\'a pas de nom.']);
+      if (o.group === 'Manches' && sizes.length) {
+        var ms = sizes.filter(function(s) { return !filled(((o.measures || {}).sleeve || {})[s]); }).length;
+        if (ms) out.push(['warn', 'Option « ' + o.name + ' » : longueur de manche manquante pour ' + ms + ' taille(s).']);
+      }
+    });
+    var mt = 0;
+    sizes.forEach(function(s) { CORE_ROWS.measures.forEach(function(r) { if (!filled((g.measures[r] || {})[s])) mt++; }); });
+    if (mt) out.push(['warn', mt + ' mesure(s) clé(s) manquante(s) dans le tableau des tailles.']);
+    return out;
+  }
+
+  /* ============ Extraction IA & Application des résultats ============ */
+  function coerce(f, v) {
+    if (v === undefined || v === null || v === '') return undefined;
+    if (f.t === 'select') { v = String(v); return f.o.indexOf(v) >= 0 ? v : undefined; }
+    if (f.t === 'multi') {
+      if (!Array.isArray(v)) return undefined;
+      v = v.filter(function(x) { return f.o.indexOf(x) >= 0; });
+      return v.length ? v : undefined;
+    }
+    if (f.t === 'number') { v = parseFloat(v); return isNaN(v) ? undefined : v; }
+    return String(v).slice(0, 600);
+  }
+  function fieldDef(k) { return ALLF.find(function(x) { return x.k === k; }); }
+
+  function applyAI(p, res, keys, over) {
+    var n = 0;
+    res = res || {};
+    var fl = res.fields || (keys ? res : {});
+    p.ev = p.ev || {};
+    ALLF.forEach(function(f) {
+      if (f.k.indexOf('r_') === 0) return;
+      if (keys && keys.indexOf(f.k) < 0) return;
+      var raw = fl[f.k], q = '';
+      if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'v' in raw) { q = raw.q || ''; raw = raw.v; }
+      var v = coerce(f, raw);
+      if (v === undefined) return;
+      if (filled(p.f[f.k]) && !(over && p.ai[f.k])) return;
+      p.f[f.k] = v;
+      p.ai[f.k] = 1;
+      if (q) p.ev[f.k] = String(q).slice(0, 160);
+      n++;
+    });
+    if (p.f.sizes) p.f.sizes.sort(function(a, b) { return SIZES.indexOf(a) - SIZES.indexOf(b); });
+    if (!keys && res.size_map && typeof res.size_map === 'object' && (!filled(p.f.size_map) || (over && p.ai.size_map))) {
+      var sm = Object.keys(res.size_map).filter(function(s) { return SIZES.indexOf(s) >= 0; }).map(function(s) { return s + ' = ' + res.size_map[s]; }).join(', ');
+      if (sm) { p.f.size_map = sm; p.ai.size_map = 1; n++; }
+    }
+    return n;
+  }
+
+  function putGrid(p, target, kind, rows, src, prefix, over, used) {
+    var n = 0;
+    if (!src || typeof src !== 'object') return 0;
+    rows.forEach(function(r) {
+      var row = src[r[0]];
+      if (!row || typeof row !== 'object') return;
+      Object.keys(row).forEach(function(sz) {
+        if (SIZES.indexOf(sz) < 0) return;
+        var v = parseFloat(row[sz]);
+        if (isNaN(v)) return;
+        var t = target[kind][r[0]] = target[kind][r[0]] || {}, key = prefix + kind + '.' + r[0] + '.' + sz;
+        if (!filled(t[sz]) || (over && p.gai[key])) {
+          t[sz] = v;
+          p.gai[key] = 1;
+          if (used) used[sz] = 1;
+          n++;
+        }
+      });
+    });
+    return n;
+  }
+
+  function applyGrids(p, res, over) {
+    p.gai = p.gai || {};
+    var used = {}, n = 0;
+    res = res || {};
+    n += putGrid(p, p.g, 'measures', MEASURES, res.measures, '', over, used);
+    n += putGrid(p, p.g, 'counts', COUNTS, res.counts, '', over, used);
+    if (!(p.f.sizes || []).length) {
+      var us = Object.keys(used).sort(function(a, b) { return SIZES.indexOf(a) - SIZES.indexOf(b); });
+      if (us.length) { p.f.sizes = us; p.ai.sizes = 1; }
+    }
+    return n;
+  }
+
+  function findOpt(p, g, name) {
+    var k = (String(g) + '|' + String(name)).toLowerCase();
+    return (p.opts || []).find(function(o) { return (o.group + '|' + o.name).toLowerCase() === k; });
+  }
+
+  function applyOptGrids(p, list, over) {
+    var n = 0;
+    if (!Array.isArray(list)) return 0;
+    p.gai = p.gai || {};
+    list.forEach(function(it) {
+      var o = it && findOpt(p, it.group, it.name);
+      if (!o) return;
+      var def = GROUPDEF[o.group] || GROUPDEF.Autre;
+      o.measures = o.measures || {};
+      o.counts = o.counts || {};
+      n += putGrid(p, o, 'measures', MEASURES.filter(function(r) { return def.m.indexOf(r[0]) >= 0; }), it.measures, o.id + '.', over, null);
+      n += putGrid(p, o, 'counts', COUNTS.filter(function(r) { return def.c.indexOf(r[0]) >= 0; }), it.counts, o.id + '.', over, null);
+    });
+    return n;
+  }
+
+  function mergeOptions(p, list, over) {
+    if (!Array.isArray(list)) return 0;
+    p.opts = p.opts || [];
+    var n = 0;
+    if (over) p.opts = p.opts.filter(function(o) { return !o.ai; });
+    list.forEach(function(o) {
+      if (!o || !o.name || !GROUPDEF[o.group]) return;
+      if (findOpt(p, o.group, o.name)) return;
+      var def = GROUPDEF[o.group], of = {};
+      Object.keys(o.fields || {}).forEach(function(k) {
+        if (def.fields.indexOf(k) < 0) return;
+        var f = fieldDef(k);
+        if (!f) return;
+        var raw = o.fields[k];
+        if (raw && typeof raw === 'object' && 'v' in raw) raw = raw.v;
+        var v = coerce(f, raw);
+        if (v !== undefined) of[k] = v;
+      });
+      p.opts.push({
+        id: uid(),
+        group: o.group,
+        name: String(o.name).slice(0, 80),
+        desc: String(o.desc || '').slice(0, 500),
+        f: of,
+        measures: {},
+        counts: {},
+        q: String(o.q || '').slice(0, 160),
+        ai: 1
+      });
+      n++;
+    });
+    return n;
+  }
+
+  function specText(keys) {
+    return ALLF.filter(function(f) { return keys ? keys.indexOf(f.k) >= 0 : f.k.indexOf('r_') !== 0; }).map(function(f) {
+      return f.k + ' (' + ({
+        text: 'texte court',
+        long: 'texte',
+        number: 'nombre' + (f.u ? ' en ' + f.u : ''),
+        select: 'une valeur parmi : ' + (f.o || []).join(' | '),
+        multi: 'liste de valeurs parmi : ' + (f.o || []).join(' | ')
+      }[f.t]) + ') = ' + f.l;
+    }).join('\n');
+  }
+  function groupSpec() {
+    return GROUP_NAMES.map(function(g) { var d = GROUPDEF[g]; return '- ' + g + (d.fields.length ? ' (clés permises : ' + d.fields.join(', ') + ')' : ''); }).join('\n');
+  }
+  function rowSpec() {
+    return 'Lignes de "measures" (cm) :\n' + MEASURES.map(function(m) { return m[0] + ' = ' + m[1]; }).join('\n') + '\n\nLignes de "counts" :\n' + COUNTS.map(function(m) { return m[0] + ' = ' + m[1]; }).join('\n');
+  }
+  function optList(p) {
+    var l = (p.opts || []).map(function(o) { var d = GROUPDEF[o.group] || GROUPDEF.Autre; return '- groupe "' + o.group + '", nom "' + o.name + '" (lignes permises : ' + d.m.concat(d.c).join(', ') + ')'; });
+    return l.length ? l.join('\n') : '(aucune variante détectée)';
+  }
+  function sizeInfo(p) {
+    return (p.f.sizes && p.f.sizes.length ? p.f.sizes.join(', ') : 'à déterminer parmi XS, S, M, L, XL, XXL, 3XL (une seule taille : utilise M)') + (p.f.size_map ? '. Noms dans le patron : ' + p.f.size_map : '');
+  }
+
+  function prompt1(txt) {
+    return 'Tu es spécialiste des patrons de tricot. Lis TOUT le texte ci-dessous et remplis la fiche technique. Réponds avec un seul objet JSON, sans autre texte :\n' +
+      '{"fields":{"<clé>":{"v":<valeur>,"q":"citation courte du patron, 15 mots maximum"}},"size_map":{"XS":"nom ou numéro de cette taille dans le patron"},"options":[{"group":"<groupe>","name":"<nom du choix>","desc":"<une phrase>","fields":{"<clé>":<valeur>},"q":"citation courte"}]}\n\n' +
+      'Règles :\n1. N\'invente rien. Omets toute clé que le texte ne permet pas de remplir. Pas de valeur approximative.\n' +
+      '2. Pour un champ à choix, "v" reprend exactement une valeur de la liste. Pour une liste, "v" est un tableau de valeurs exactes de la liste.\n' +
+      '3. Tailles : associe les tailles du patron, dans l\'ordre croissant, aux étiquettes XS, S, M, L, XL, XXL, 3XL (par exemple 34/36 = XS). Le champ "sizes" contient seulement les tailles réellement proposées. Note la correspondance dans "size_map".\n' +
+      '4. VARIANTES : beaucoup de patrons proposent plusieurs choix (manches longues, 3/4 ou courtes ; encolure ronde ou en V ; bas en côtes ou en point mousse ; boutons ou zip ; avec ou sans poches ; versions courte et longue). Mets chaque choix dans "options", une entrée par choix, y compris le choix par défaut. Groupes possibles (avec les clés permises dans "fields" de l\'option) :\n' + groupSpec() + '\n' +
+      '   Dans la fiche principale ("fields"), mets la variante par défaut : celle de la photo principale, sinon la première citée.\n' +
+      '5. Ne remplis aucune clé qui commence par r_ (elle concerne le résultat tricoté).\n' +
+      '6. Les mesures et nombres de mailles par taille seront demandés à l\'étape suivante : ne les mets pas ici.\n' +
+      '7. Auteur : mets dans "designer" le nom de la créatrice, du créateur ou de la marque (couverture, crédits, "designed by", droits d\'auteur). Donne la citation correspondante.\n\n' +
+      'Champs de la fiche :\n' + specText(null) + '\n\nTexte du patron :\n' + txt;
+  }
+
+  function prompt2(txt, p) {
+    return 'Tu lis un patron de tricot pour remplir deux tableaux par taille. Tailles proposées : ' + sizeInfo(p) + '.\n' +
+      'Réponds uniquement avec un objet JSON : {"measures":{"<ligne>":{"<taille>":nombre}},"counts":{"<ligne>":{"<taille>":nombre}},"options":[{"group":"<groupe>","name":"<nom>","measures":{...},"counts":{...}}]}\n\n' +
+      'Règles :\n1. N\'invente rien. Un nombre seul par cellule. Omets une cellule absente du texte.\n' +
+      '2. Quand le patron écrit "S (M, L, XL)" ou "96 (104, 112, 120)", la première valeur est la plus petite taille proposée, la suivante la taille suivante, et ainsi de suite. Une valeur unique vaut pour toutes les tailles.\n' +
+      '3. Recopie exactement les nombres écrits, sans calcul. "chest" = nombre de mailles à la largeur maximale du corps.\n' +
+      '4. Une valeur qui dépend d\'une variante (longueur de manche selon manches longues ou courtes, mailles d\'encolure selon encolure ronde ou V…) va seulement dans l\'entrée de "options" qui porte exactement ce groupe et ce nom. Les tableaux principaux ne contiennent que les valeurs communes à toutes les variantes. Variantes connues :\n' + optList(p) + '\n\n' +
+      rowSpec() + '\n\nTexte du patron :\n' + txt;
+  }
+
+  function promptVisual(p) {
+    var empty = ALLF.filter(function(f) { return f.k.indexOf('r_') !== 0 && !filled(p.f[f.k]); }).map(function(f) { return f.k; });
+    return 'Ces images sont des pages d\'un patron de tricot (schémas cotés, tableaux, photos). Complète la fiche avec ce que tu vois. Tailles proposées : ' + sizeInfo(p) + '.\n' +
+      'Réponds uniquement avec un objet JSON {"fields":{"<clé>":{"v":<valeur>,"q":"ce qui est écrit ou visible"}},"measures":{"<ligne>":{"<taille>":nombre}},"counts":{...},"options":[{"group":"<groupe>","name":"<nom>","measures":{...},"counts":{...}}]}.\n' +
+      'N\'invente rien, omets ce qui n\'est pas lisible. Les valeurs "parmi" reprennent exactement une option. Variantes connues :\n' + optList(p) + '\n\n' +
+      'Champs encore vides :\n' + specText(empty.slice(0, 40)) + '\n\n' + rowSpec();
+  }
+
+  function sig() {
+    if (!S.ctl || S.ctl.signal.aborted) S.ctl = new AbortController();
+    return S.ctl.signal;
+  }
+
+  async function analyze(p, o) {
+    o = o || {};
+    var over = !!o.over;
+    if (!(p.raw || '').trim()) {
+      toast('Ajoutez d\'abord le texte du patron.');
+      return false;
+    }
+    var txt = proc(p).clean.slice(0, 70000), n = 0, opt = 0, ok = false;
+    var signal = sig();
+    try {
+      S.busy = 'Étape 1 sur 2 : fiche, tailles et variantes…';
+      render();
+      var r1 = await callGemini(prompt1(txt), { json: true, signal: signal });
+      n += applyAI(p, r1, null, over);
+      opt += mergeOptions(p, r1 && r1.options, over);
+      persist();
+      ok = true;
+    } catch (e) {
+      toast(aiMsg(e));
+      if (e && e.code === 'cancelled') { S.busy = ''; render(); return false; }
+    }
+    if (ok) {
+      try {
+        S.busy = 'Étape 2 sur 2 : tableaux par taille…';
+        render();
+        var r2 = await callGemini(prompt2(txt, p), { json: true, signal: signal });
+        n += applyGrids(p, r2, over) + applyOptGrids(p, r2 && r2.options, over);
+      } catch (e) {
+        toast(aiMsg(e));
+      }
+      p.analysis = { at: Date.now(), n: n, opts: (p.opts || []).length };
+      persist();
+      toast(n + ' valeurs remplies' + (opt ? ', ' + opt + ' variante(s) détectée(s)' : '') + '. À vérifier.');
+    }
+    if (ok && S.opts.autoFile && !p.folder) autoFile(p, S.opts.autoFile);
+    S.busy = '';
+    render();
+    return ok;
+  }
+
+  async function renderPages(pdf, a, b) {
+    var imgs = [];
+    for (var n = a; n <= b; n++) {
+      var page = await pdf.getPage(n), vp = page.getViewport({ scale: 1.5 }), c = document.createElement('canvas');
+      c.width = vp.width;
+      c.height = vp.height;
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      imgs.push(await new Promise(function(r) { c.toBlob(r, 'image/jpeg', 0.85); }));
+    }
+    return imgs;
+  }
+
+  async function aiVisual(p) {
+    var d = await getPdf(p);
+    if (!d) {
+      toast('Associez d\'abord le PDF pour lire les schémas des pages.');
+      return;
+    }
+    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), per = 3, n = 0;
+    try {
+      for (var a = 1; a <= total; a += per) {
+        var b = Math.min(total, a + per - 1);
+        S.busy = 'Lecture des pages ' + a + ' à ' + b + '…';
+        render();
+        var imgs = await renderPages(pdf, a, b);
+        var res = await callGemini(promptVisual(p), { images: imgs, json: true, signal: sig() });
+        n += applyAI(p, res, null, false) + applyGrids(p, res, false) + applyOptGrids(p, res && res.options, false);
+      }
+      p.analysis = p.analysis || { at: Date.now(), n: 0, opts: (p.opts || []).length };
+      p.analysis.n += n;
+      persist();
+      toast(n ? n + ' valeurs ajoutées d\'après les pages.' : 'Rien de nouveau dans les pages.');
+    } catch (e) {
+      toast(aiMsg(e));
+    }
+    S.busy = '';
+    render();
+  }
+
+  async function aiPhoto(p) {
+    var ph = (p.photos || []).filter(function(x) { return x.kind !== 'fini'; }).slice(0, 3);
+    if (!ph.length) ph = (p.photos || []).slice(0, 3);
+    if (!ph.length) {
+      toast('Ajoutez une photo ou un croquis d\'abord.');
+      return;
+    }
+    S.busy = 'Analyse visuelle des photos…';
+    render();
+    try {
+      var bl = (await Promise.all(ph.map(function(x) { return loadBlob(x.id); }))).filter(Boolean);
+      if (!bl.length) throw new Error('Photos introuvables en mémoire');
+      var prompt = 'Ces images montrent un modèle de tricot (photo ou croquis). Décris ce que tu vois pour remplir une fiche. Réponds uniquement avec un objet JSON {clé:valeur}. N\'invente rien : omets les clés dont tu n\'es pas sûr. Les valeurs "parmi" doivent reprendre exactement une option.\n\nChamps :\n' + specText(PHOTO_KEYS);
+      var res = await callGemini(prompt, { images: bl, json: true, signal: sig() });
+      var n = applyAI(p, res, PHOTO_KEYS, false);
+      persist();
+      toast(n ? n + ' champs proposés d\'après la photo.' : 'Rien de nouveau détecté.');
+    } catch (e) {
+      toast(aiMsg(e));
+    }
+    S.busy = '';
+    render();
+  }
+
+  async function aiRead(p) {
+    var d = await getPdf(p);
+    if (!d) {
+      toast('Associez le PDF pour le lire avec l\'IA.');
+      return false;
+    }
+    var pdf = d.pdf, total = Math.min(pdf.numPages, 12), out = [], per = 3;
+    try {
+      for (var a = 1; a <= total; a += per) {
+        var b = Math.min(total, a + per - 1);
+        S.busy = 'Transcription OCR des pages ' + a + ' à ' + b + '…';
+        render();
+        var imgs = await renderPages(pdf, a, b);
+        var text = await callGemini('Transcris fidèlement et intégralement le texte de ces pages d\'un patron de tricot, dans l\'ordre, sans rien résumer ni corriger. Garde un rang ou une phrase par ligne. Réponds uniquement avec la transcription.', { images: imgs, signal: sig() });
+        out.push(text);
+      }
+      p.raw = out.join('\n\f\n');
+      p.scanned = false;
+      p._v = (p._v || 0) + 1;
+      persist();
+      toast('Texte transcrit par l\'IA. Relisez-le.');
+      return true;
+    } catch (e) {
+      toast(aiMsg(e));
+      return false;
+    }
+  }
+
+  async function readAndAnalyze(p) {
+    var ok = await aiRead(p);
+    S.busy = '';
+    render();
+    if (ok && S.opts.auto) await analyze(p);
+  }
+
+  /* ============ Import PDF, Miniatures et Visionneuse ============ */
+  async function storeThumb(p, pdf) {
+    var page = await pdf.getPage(1), v0 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: 360 / v0.width });
+    var c = document.createElement('canvas');
+    c.width = Math.round(vp.width);
+    c.height = Math.round(vp.height);
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    var b = await new Promise(function(res) { c.toBlob(res, 'image/jpeg', 0.8); });
+    var tid = 'th_' + p.id;
+    await saveBlob(tid, b);
+    p.thumb = tid;
+    persist();
+    if (S.tab === 'lib') render();
+  }
+
+  async function handleFiles(files) {
+    S.tab = 'add';
+    var last = null, made = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') {
+        S.log.unshift({ ok: 0, m: f.name + ' : format non supporté (PDF uniquement).' });
+        continue;
+      }
+      S.busy = 'Lecture de ' + f.name + '…';
+      render();
+      try {
+        var r = await pdfToPages(f);
+        var raw = r.pages.map(function(pg) { return pg.join('\n'); }).join('\n\f\n');
+        var chars = raw.replace(/\s/g, '').length;
+        var p = newPattern(f.name.replace(/\.pdf$/i, ''), raw.slice(0, 90000), { file: f.name, pages: r.pages.length });
+        if (chars < 150 * Math.max(1, Math.min(r.pages.length, 3))) {
+          p.scanned = true;
+        }
+        var pdfId = 'pdf_' + p.id;
+        await saveBlob(pdfId, f);
+        p.source.pdf = pdfId;
+        pdfs.set(p.id, r);
+
+        if (S.opts.autoFile) autoFile(p, S.opts.autoFile);
+        S.patterns.unshift(p);
+        persist();
+        last = p;
+        made.push(p);
+        storeThumb(p, r.pdf).catch(function() {});
+        S.log.unshift({
+          ok: 1,
+          m: f.name + ' : ' + r.pages.length + ' page(s), ' + (p.scanned ? 'PDF scanné (image)' : chars + ' caractères extraits')
+        });
+      } catch (e) {
+        S.log.unshift({ ok: 0, m: f.name + ' : lecture impossible (' + ((e && e.message) || 'erreur') + ').' });
+      }
+    }
+    S.busy = '';
+    if (last && files.length === 1) openP(last.id);
+    else render();
+
+    if (S.opts.auto && made.length) {
+      for (var j = 0; j < made.length; j++) {
+        var q = made[j];
+        if (q.scanned) {
+          var rd = await aiRead(q);
+          S.busy = '';
+          if (!rd) continue;
+        }
+        await analyze(q);
+      }
+    }
+  }
+
+  async function getPdf(p) {
+    var d = pdfs.get(p.id);
+    if (d && d.pdf) return d;
+    if (!p.source || !p.source.pdf) return null;
+    try {
+      var b = await loadBlob(p.source.pdf);
+      if (!b) return null;
+      var buf = await b.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+      d = { pdf: pdf };
+      pdfs.set(p.id, d);
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function queueThumbs() {
+    if (thumbQ) return;
+    thumbQ = true;
+    try {
+      var list = S.patterns.slice();
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+        if (p.thumb) {
+          await loadBlob(p.thumb);
+          continue;
+        }
+        if (thumbTried[p.id]) continue;
+        if (!(pdfs.has(p.id) || (p.source && p.source.pdf))) continue;
+        thumbTried[p.id] = 1;
+        var d = await getPdf(p);
+        if (!d) continue;
+        await storeThumb(p, d.pdf);
+      }
+      resolveLazyImages();
+    } catch (e) {}
+    thumbQ = false;
+  }
+
+  async function attachPdf(p, f) {
+    S.busy = 'Enregistrement du PDF…';
+    render();
+    try {
+      var buf = await f.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;
+      pdfs.set(p.id, { pdf: pdf });
+      p.source = p.source || {};
+      var pdfId = 'pdf_' + p.id;
+      await saveBlob(pdfId, f);
+      p.source.pdf = pdfId;
+      p.source.file = p.source.file || f.name;
+      p.source.pages = pdf.numPages;
+      delete p.thumb;
+      await storeThumb(p, pdf);
+      persist();
+      toast('PDF associé au patron.');
+    } catch (e) {
+      toast('Impossible d\'associer ce PDF.');
+    }
+    S.busy = '';
+    render();
+  }
+
+  function pageLabel() {
+    var box = $('#vscroll'), ref = box.scrollTop + box.clientHeight / 3, n = 1;
+    V.pages.forEach(function(pg, i) { if (pg.el.offsetTop <= ref) n = i + 1; });
+    $('#vpage').textContent = V.pages.length ? n + ' / ' + V.pages.length : '';
+  }
+
+  async function renderVisible() {
+    if (V.running) { V.again = true; return; }
+    V.running = true;
+    try {
+      do {
+        V.again = false;
+        var box = $('#vscroll'), top = box.scrollTop, bot = top + box.clientHeight;
+        for (var i = 0; i < V.pages.length && V.pdf; i++) {
+          var pg = V.pages[i], el = pg.el, y = el.offsetTop, h = el.offsetHeight;
+          var near = !(y + h < top - 900 || y > bot + 900), far = (y + h < top - 3000 || y > bot + 3000);
+          if (far && pg.done) { el.innerHTML = ''; el.style.aspectRatio = pg.ar; pg.done = false; continue; }
+          if (!near || pg.done) continue;
+          var page = await V.pdf.getPage(i + 1);
+          if (!V.pdf) break;
+          var v0 = page.getViewport({ scale: 1 }), dpr = Math.min(window.devicePixelRatio || 1, V.zoom > 1 ? 1.5 : 2);
+          var vp = page.getViewport({ scale: (el.clientWidth || 320) * dpr / v0.width });
+          var c = document.createElement('canvas');
+          c.width = Math.floor(vp.width);
+          c.height = Math.floor(vp.height);
+          await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+          el.innerHTML = '';
+          el.appendChild(c);
+          el.style.aspectRatio = '';
+          pg.done = true;
+        }
+      } while (V.again && V.pdf);
+    } catch (e) {}
+    V.running = false;
+  }
+
+  async function buildViewer() {
+    var box = $('#vscroll');
+    box.innerHTML = '';
+    box.style.setProperty('--z', V.zoom);
+    V.pages = [];
+    var first = await V.pdf.getPage(1), v = first.getViewport({ scale: 1 }), ar = v.width + ' / ' + v.height;
+    for (var n = 1; n <= V.pdf.numPages; n++) {
+      var d = document.createElement('div');
+      d.className = 'vpage';
+      d.style.aspectRatio = ar;
+      box.appendChild(d);
+      V.pages.push({ el: d, done: false, ar: ar });
+    }
+    box.scrollTop = 0;
+    pageLabel();
+    renderVisible();
+  }
+
+  async function openViewer(p) {
+    S.busy = 'Ouverture du PDF…';
+    render();
+    var d = await getPdf(p);
+    S.busy = '';
+    render();
+    if (!d) {
+      toast('PDF introuvable. Associez-le depuis l\'onglet PDF de la fiche.');
+      return;
+    }
+    V.id = p.id;
+    V.pdf = d.pdf;
+    V.zoom = 1;
+    $('#vtitle').textContent = p.title;
+    $('#viewer').hidden = false;
+    document.body.style.overflow = 'hidden';
+    buildViewer();
+  }
+
+  function closeViewer() {
+    $('#viewer').hidden = true;
+    document.body.style.overflow = '';
+    V.pdf = null;
+    V.pages = [];
+    $('#vscroll').innerHTML = '';
+  }
+
+  function setZoom(z) {
+    if (!V.pdf) return;
+    V.zoom = Math.max(1, Math.min(3, z));
+    var box = $('#vscroll');
+    box.style.setProperty('--z', V.zoom);
+    V.pages.forEach(function(pg) { pg.el.innerHTML = ''; pg.el.style.aspectRatio = pg.ar; pg.done = false; });
+    renderVisible();
+  }
+
+  function openP(id) {
+    S.cur = id;
+    S.tab = 'det';
+    S.sub = 'fiche';
+    S.delAsk = false;
+    S.sim = { sts: '', rows: '' };
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  /* ============ Export & Sauvegarde / Restauration ============ */
+  function brief(p) {
+    var f = p.f, b = [];
+    b.push('Crée un patron de tricot' + (f.garment ? ' : ' + f.garment.toLowerCase() : '') + (f.target ? ' pour ' + f.target.toLowerCase() : '') + '.');
+    var d = [];
+    ['silhouette', 'length', 'neckline', 'sleeves', 'sleeve_shape', 'shoulder', 'construction'].forEach(function(k) { if (filled(f[k])) d.push(f[k]); });
+    if (d.length) b.push('Coupe : ' + d.join(', ') + '.');
+    if (filled(f.ease_cm)) b.push('Aisance au buste : ' + f.ease_cm + ' cm.');
+    if ((f.sizes || []).length) b.push('Tailles : ' + f.sizes.join(', ') + '.');
+    if (f.gauge_sts && f.gauge_rows) b.push('Échantillon : ' + f.gauge_sts + ' mailles et ' + f.gauge_rows + ' rangs pour 10 cm' + (f.needle_mm ? ' avec des aiguilles de ' + f.needle_mm + ' mm' : '') + '.');
+    if (f.yarn_weight || f.yarn_fiber) b.push('Fil : ' + [f.yarn_weight, f.yarn_fiber].filter(Boolean).join(', ') + '.');
+    if ((f.stitches || []).length) b.push('Points : ' + f.stitches.join(', ') + '.');
+    var fin = [f.hem, f.neck_finish, f.closure].filter(Boolean);
+    if (fin.length) b.push('Finitions : ' + fin.join(' ; ') + '.');
+    var og = {};
+    (p.opts || []).forEach(function(o) { if (o.name) (og[o.group] = og[o.group] || []).push(o.name); });
+    Object.keys(og).forEach(function(g) { if (og[g].length > 1) b.push('Options (' + g.toLowerCase() + ') : ' + og[g].join(', ') + '.'); });
+    return b.join(' ');
+  }
+
+  function photoFile(ph) { return 'photos/' + ph.id + '.jpg'; }
+  function selected() { return S.patterns.filter(function(p) { return !S.exp.valid || p.status === 'validé'; }); }
+
+  function buildFiles() {
+    var ps = selected(), f = {};
+    f['patterns.jsonl'] = ps.map(function(p) {
+      var c = proc(p);
+      return JSON.stringify({
+        id: p.id,
+        title: p.title,
+        status: p.status,
+        folder: p.folder || null,
+        source: p.source,
+        fields: p.f,
+        options: p.opts || [],
+        measures: p.g.measures,
+        counts: p.g.counts,
+        photos: (p.photos || []).map(function(x) { return { id: x.id, file: photoFile(x), kind: x.kind }; }),
+        raw: p.raw || '',
+        text: c.clean,
+        chunks: c.chunks
+      });
+    }).join('\n');
+
+    f['chunks.jsonl'] = ps.flatMap(function(p) {
+      return proc(p).chunks.map(function(c) {
+        return JSON.stringify({
+          pattern_id: p.id,
+          chunk: c.i,
+          section: c.section,
+          text: c.text,
+          words: c.words,
+          garment: p.f.garment || null,
+          sizes: p.f.sizes || [],
+          language: p.f.language || null
+        });
+      });
+    }).join('\n');
+
+    f['finetune.jsonl'] = ps.filter(function(p) { return (p.raw || '').trim(); }).map(function(p) {
+      var imgs = (p.photos || []).filter(function(x) { return x.kind !== 'fini'; }).map(photoFile);
+      return JSON.stringify({
+        messages: [{ role: 'user', content: brief(p) }, { role: 'assistant', content: proc(p).clean }],
+        images: imgs,
+        finished_images: (p.photos || []).filter(function(x) { return x.kind === 'fini'; }).map(photoFile)
+      });
+    }).join('\n');
+
+    var cols = ['id', 'title', 'status', 'options'].concat(ALLF.map(function(x) { return x.k; }));
+    MEASURES.forEach(function(m) { SIZES.forEach(function(s) { cols.push('measures.' + m[0] + '.' + s); }); });
+    COUNTS.forEach(function(m) { SIZES.forEach(function(s) { cols.push('counts.' + m[0] + '.' + s); }); });
+    var q = function(v) {
+      v = Array.isArray(v) ? v.join('|') : (v == null ? '' : String(v));
+      return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    f['patterns.csv'] = [cols.join(',')].concat(ps.map(function(p) {
+      return cols.map(function(c) {
+        if (c === 'id') return q(p.id);
+        if (c === 'title') return q(p.title);
+        if (c === 'status') return q(p.status);
+        if (c === 'options') return q((p.opts || []).length ? JSON.stringify(p.opts) : '');
+        if (c.indexOf('measures.') === 0) { var a = c.split('.'); return q((p.g.measures[a[1]] || {})[a[2]]); }
+        if (c.indexOf('counts.') === 0) { var b = c.split('.'); return q((p.g.counts[b[1]] || {})[b[2]]); }
+        return q(p.f[c]);
+      }).join(',');
+    })).join('\n');
+
+    f['schema.json'] = JSON.stringify({
+      option_groups: GROUPDEF,
+      sizes: SIZES,
+      measures: MEASURES,
+      counts: COUNTS,
+      sections: SCHEMA.map(function(s) {
+        return {
+          id: s.id,
+          title: s.t,
+          why: s.why,
+          fields: s.f.filter(function(x) { return x.k[0] !== '@'; }).map(function(x) {
+            return { key: x.k, label: x.l, type: x.t, options: x.o || null, unit: x.u || null, essential: !!x.core };
+          })
+        };
+      })
+    }, null, 2);
+
+    return f;
+  }
+
+  function downloadBlob(filename, data) {
+    try {
+      var blob = data instanceof Blob ? data : new Blob([data], { type: 'application/octet-stream' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
+      return true;
+    } catch (e) {
+      toast('Téléchargement impossible.');
+      return false;
+    }
+  }
+
+  async function exportZip() {
+    if (!window.JSZip) {
+      toast('Module ZIP indisponible. Exportez les fichiers un par un.');
+      return;
+    }
+    S.busy = 'Préparation de l\'archive ZIP…';
+    render();
+    try {
+      var files = buildFiles(), z = new JSZip(), miss = 0;
+      Object.keys(files).forEach(function(k) { z.file(k, files[k]); });
+      z.file('LISEZMOI.txt', 'Jeu de données de patrons de tricot.\n- patterns.jsonl : un patron complet par ligne (fiche, tableaux, texte nettoyé, blocs).\n- chunks.jsonl : blocs de texte de 20 à 30 mots avec leur section.\n- finetune.jsonl : paires description -> patron, avec les images de référence.\n- patterns.csv : fiches à plat.\n- schema.json : définition de tous les champs.\n- photos/ : photos et croquis.\n');
+      if (S.exp.photos) {
+        var ids = {};
+        selected().forEach(function(p) { (p.photos || []).forEach(function(x) { ids[x.id] = 1; }); });
+        var idList = Object.keys(ids);
+        for (var i = 0; i < idList.length; i++) {
+          var id = idList[i];
+          var bl = await loadBlob(id);
+          if (bl) z.file('photos/' + id + '.jpg', bl);
+          else miss++;
+        }
+      }
+      var blob = await z.generateAsync({ type: 'blob' });
+      S.busy = '';
+      render();
+      if (downloadBlob('carnet-patrons.zip', blob)) {
+        toast('Archive téléchargée' + (miss ? ' (' + miss + ' photo(s) manquante(s))' : '.'));
+      }
+    } catch (e) {
+      S.busy = '';
+      render();
+      toast('Erreur lors de la création de l\'archive.');
+    }
+  }
+
+  async function restoreBackup(file) {
+    S.busy = 'Restauration de la sauvegarde…';
+    render();
+    try {
+      var jsonlText = '';
+      var zipObj = null;
+      if (/\.zip$/i.test(file.name)) {
+        if (!window.JSZip) throw new Error('JSZip indisponible');
+        zipObj = await JSZip.loadAsync(file);
+        var entry = zipObj.file('patterns.jsonl');
+        if (!entry) throw new Error('Fichier patterns.jsonl introuvable dans l\'archive');
+        jsonlText = await entry.async('string');
+      } else {
+        jsonlText = await file.text();
+      }
+
+      var lines = jsonlText.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+      var added = 0, updated = 0;
+      for (var i = 0; i < lines.length; i++) {
+        var rec = JSON.parse(lines[i]);
+        if (!rec || !rec.id) continue;
+        var photos = [];
+        if (Array.isArray(rec.photos)) {
+          for (var j = 0; j < rec.photos.length; j++) {
+            var ph = rec.photos[j];
+            var phId = ph.id || (ph.file ? ph.file.replace(/^photos\/|\.jpg$/g, '') : 'img_' + uid());
+            if (zipObj && ph.file && zipObj.file(ph.file)) {
+              var phBlob = await zipObj.file(ph.file).async('blob');
+              await saveBlob(phId, phBlob);
+            }
+            photos.push({ id: phId, kind: ph.kind || 'modele' });
+          }
+        }
+        var pat = {
+          id: rec.id,
+          title: rec.title || 'Patron restauré',
+          created: rec.created || Date.now(),
+          status: rec.status || 'brouillon',
+          folder: rec.folder || undefined,
+          source: rec.source || {},
+          raw: rec.raw || rec.text || '',
+          f: rec.fields || {},
+          g: { measures: rec.measures || {}, counts: rec.counts || {} },
+          photos: photos,
+          ai: {},
+          ev: {},
+          gai: {},
+          opts: rec.options || []
+        };
+        var idx = S.patterns.findIndex(function(x) { return x.id === pat.id; });
+        if (idx >= 0) {
+          S.patterns[idx] = pat;
+          updated++;
+        } else {
+          S.patterns.unshift(pat);
+          added++;
+        }
+      }
+      persist();
+      S.busy = '';
+      render();
+      toast('Restauration terminée : ' + added + ' ajouté(s), ' + updated + ' mis à jour.');
+    } catch (e) {
+      S.busy = '';
+      render();
+      toast('Erreur de restauration : ' + ((e && e.message) || 'fichier invalide'));
+    }
+  }
+
+  /* ============ Composants d'interface ============ */
+  function statusChip(s) {
+    return '<span class="chip ' + (s === 'validé' ? 'ok' : s === 'à vérifier' ? 'warn' : 'mute') + '">' + esc(s) + '</span>';
+  }
+
+  function tabbar() {
+    var T = [['lib', 'Patrons', 'lib'], ['add', 'Ajouter', 'add'], ['exp', 'Export', 'exp'], ['guide', 'Champs', 'guide']];
+    return '<div class="tabbar"><nav>' + T.map(function(t) {
+      var on = S.tab === t[0] || (S.tab === 'det' && t[0] === 'lib');
+      return '<button data-act="tab" data-v="' + t[0] + '" class="' + (on ? 'on' : '') + '">' + ico(t[2]) + '<span>' + t[1] + '</span></button>';
+    }).join('') + '</nav></div>';
+  }
+
+  function coverImgHtml(p, alt) {
+    var url = p.thumb ? getBlobUrl(p.thumb) : '';
+    if (url) return '<img alt="' + esc(alt) + '" src="' + esc(url) + '">';
+    if (p.thumb) return '<img alt="' + esc(alt) + '" data-blob-id="' + esc(p.thumb) + '" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">';
+    var has = !!((p.source && p.source.pdf) || pdfs.has(p.id));
+    return '<span class="ph">' + (has ? 'Miniature…' : 'Sans PDF') + '</span>';
+  }
+
+  function cardHtml(p) {
+    var c = Math.round(completeness(p) * 100);
+    var meta = [p.f.designer, p.f.garment, p.f.difficulty].filter(Boolean).map(esc).join(' · ');
+    return '<div class="pcard">' +
+      '<button class="cover" data-act="viewPdf" data-id="' + esc(p.id) + '" aria-label="Voir le PDF">' + coverImgHtml(p, 'Première page de ' + p.title) + '</button>' +
+      '<div class="pinfo">' +
+      '<div class="stack" style="gap:4px">' +
+      '<span style="font-weight:600;overflow-wrap:anywhere">' + esc(p.title) + '</span>' +
+      (meta ? '<span class="sub">' + meta + '</span>' : '') +
+      '<span class="chips">' + statusChip(p.status) + '</span>' +
+      '</div>' +
+      '<div class="stack" style="gap:6px;margin-top:6px">' +
+      '<span class="row"><span class="bar grow"><i style="width:' + c + '%"></i></span><span class="sub num">' + c + ' %</span></span>' +
+      '<button class="btn small" data-act="open" data-id="' + esc(p.id) + '">Ouvrir la fiche</button>' +
+      '</div>' +
+      '</div></div>';
+  }
+
+  function groupsOf(ps, mode) {
+    var map = {}, order = [];
+    function add(key, label, fid, p) {
+      if (!map[key]) { map[key] = { key: key, label: label, fid: fid, ps: [] }; order.push(key); }
+      if (p) map[key].ps.push(p);
+    }
+    if (mode === 'folder') S.folders.forEach(function(f) { add(f.id, f.name, f.id, null); });
+    ps.forEach(function(p) {
+      if (mode === 'folder') {
+        var f = S.folders.find(function(x) { return x.id === p.folder; });
+        if (f) add(f.id, f.name, f.id, p);
+        else add('_none', 'Sans dossier', null, p);
+      } else if (mode === 'author') {
+        var a = normAuthor(p.f.designer);
+        add(a ? gkey(a) : '_none', a || 'Auteur inconnu', null, p);
+      } else {
+        var g = p.f.garment;
+        add(g ? gkey(g) : '_none', g || 'Pièce non précisée', null, p);
+      }
+    });
+    var arr = order.map(function(k) { return map[k]; });
+    if (S.q.trim() || S.fStatus !== 'all' || S.fDiff !== 'all') {
+      arr = arr.filter(function(g) { return g.ps.length; });
+    }
+    arr.sort(function(a, b) {
+      if (a.key === '_none') return 1;
+      if (b.key === '_none') return -1;
+      return String(a.label).localeCompare(String(b.label), 'fr');
+    });
+    return arr;
+  }
+
+  function groupHead(g) {
+    var h = '<div class="gh"><h2>' + esc(g.label) + '</h2><span class="sub num">' + g.ps.length + '</span>';
+    if (S.group === 'folder' && g.fid) {
+      if (S.renameId === g.fid) {
+        h += '<div class="row" style="width:100%"><input class="in grow" id="renameIn" value="' + esc(g.label) + '" aria-label="Nom du dossier"><button class="btn small primary" data-act="renSave" data-id="' + esc(g.fid) + '">Enregistrer</button><button class="btn small" data-act="renCancel">Annuler</button></div>';
+      } else if (S.delF === g.fid) {
+        h += '<div class="note warn" style="width:100%"><div>Supprimer ce dossier ? Les patrons sont conservés.<div class="row" style="margin-top:8px"><button class="btn small danger" data-act="delFYes" data-id="' + esc(g.fid) + '">Supprimer</button><button class="btn small" data-act="delFNo">Annuler</button></div></div></div>';
+      } else {
+        h += '<button class="btn small" data-act="renF" data-id="' + esc(g.fid) + '">Renommer</button><button class="btn small danger" data-act="delF" data-id="' + esc(g.fid) + '">Supprimer</button>';
+      }
+    }
+    return h + '</div>';
+  }
+
+  function listHtml() {
+    var q = S.q.trim().toLowerCase();
+    var ps = S.patterns.filter(function(p) {
+      if (S.fStatus !== 'all' && p.status !== S.fStatus) return false;
+      if (S.fDiff !== 'all' && p.f.difficulty !== S.fDiff) return false;
+      if (q && (p.title + ' ' + (p.f.garment || '') + ' ' + (p.f.designer || '') + ' ' + (p.f.yarn_name || '')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    if (!S.patterns.length) {
+      return '<div class="empty"><h2>Aucun patron pour l\'instant</h2><p>Importez un PDF ou collez un texte de patron pour commencer votre jeu de données.</p><button class="btn primary" data-act="tab" data-v="add">Ajouter un patron</button></div>';
+    }
+    if (!ps.length) {
+      return '<div class="empty"><p>Aucun patron ne correspond à vos filtres.</p><button class="btn small" data-act="resetFilters">Réinitialiser les filtres</button></div>';
+    }
+    if (S.group === 'all') return '<div class="pgrid">' + ps.map(cardHtml).join('') + '</div>';
+    return groupsOf(ps, S.group).map(function(g) {
+      return groupHead(g) + (g.ps.length ? '<div class="pgrid">' + g.ps.map(cardHtml).join('') + '</div>' : '<p class="sub">Dossier vide. Choisissez ce dossier dans la fiche d\'un patron.</p>');
+    }).join('');
+  }
+
+  function folderTools() {
+    return '<div class="card stack" style="margin-bottom:12px">' +
+      '<div class="row"><input class="in grow" id="newFolder" placeholder="Nom du nouveau dossier" aria-label="Nom du nouveau dossier"><button class="btn small primary" data-act="addF">Créer</button></div>' +
+      '<div class="stack" style="gap:6px"><span class="n" style="font-weight:500">Classer les patrons sans dossier</span>' +
+      '<div class="row"><button class="btn small" data-act="autoAuthor">Par auteur</button><button class="btn small" data-act="autoGarment">Par pièce</button></div></div>' +
+      '<label class="fl"><span class="n">Nouveaux patrons</span><select class="in" data-autofile="1">' +
+      '<option value=""' + (!S.opts.autoFile ? ' selected' : '') + '>Ne pas classer automatiquement</option>' +
+      '<option value="author"' + (S.opts.autoFile === 'author' ? ' selected' : '') + '>Classer par auteur</option>' +
+      '<option value="garment"' + (S.opts.autoFile === 'garment' ? ' selected' : '') + '>Classer par pièce</option>' +
+      '</select></label></div>';
+  }
+
+  function themeIcon() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.hasAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return ico(isDark ? 'sun' : 'moon');
+  }
+
+  function viewLib() {
+    var chunks = 0, ph = 0, avg = 0;
+    S.patterns.forEach(function(p) {
+      var c = proc(p);
+      chunks += c.chunks.length;
+      ph += (p.photos || []).length;
+      avg += completeness(p);
+    });
+    avg = S.patterns.length ? Math.round(avg / S.patterns.length * 100) : 0;
+    var modes = [['all', 'Tous'], ['folder', 'Dossiers'], ['author', 'Auteurs'], ['garment', 'Pièces']];
+    var statuses = [['all', 'Tous statuts'], ['brouillon', 'Brouillon'], ['à vérifier', 'À vérifier'], ['validé', 'Validé']];
+    var diffs = ['Débutant', 'Facile', 'Intermédiaire', 'Avancé'];
+
+    return '<div class="top"><h1 class="grow">Carnet de patrons</h1><button class="icon-btn" data-act="toggleTheme" aria-label="Changer de thème" title="Thème clair / sombre">' + themeIcon() + '</button></div>' +
+      '<div class="stats">' +
+      '<div class="stat"><b>' + S.patterns.length + '</b><span>patrons</span></div>' +
+      '<div class="stat"><b>' + chunks + '</b><span>blocs de texte</span></div>' +
+      '<div class="stat"><b>' + ph + '</b><span>photos</span></div>' +
+      '<div class="stat"><b>' + avg + ' %</b><span>fiches complètes</span></div>' +
+      '</div>' +
+      (S.patterns.length || S.folders.length ?
+        '<input class="search" id="q" type="search" placeholder="Rechercher un patron, auteur, fil…" value="' + esc(S.q) + '">' +
+        '<div class="filter-bar">' +
+        statuses.map(function(st) { return '<button type="button" class="chip' + (S.fStatus === st[0] ? ' on' : '') + '" data-act="fStatus" data-v="' + esc(st[0]) + '">' + esc(st[1]) + '</button>'; }).join('') +
+        diffs.map(function(df) { return '<button type="button" class="chip' + (S.fDiff === df ? ' on' : '') + '" data-act="fDiff" data-v="' + esc(df) + '">' + esc(df) + '</button>'; }).join('') +
+        '</div>' +
+        '<div class="seg" style="margin-bottom:12px">' + modes.map(function(m) { return '<button data-act="grp" data-v="' + m[0] + '" class="' + (S.group === m[0] ? 'on' : '') + '">' + m[1] + '</button>'; }).join('') + '</div>' : '') +
+      (S.group === 'folder' ? folderTools() : '') +
+      '<div id="list">' + listHtml() + '</div>';
+  }
+
+  function viewAdd() {
+    return '<div class="top"><h1>Ajouter un patron</h1></div><div class="stack">' +
+      '<div class="card stack"><h2>Importer des PDF</h2>' +
+      '<div class="dropzone" id="pdfDrop">' +
+      ico('upload') +
+      '<p><b>Glissez-déposez vos fichiers PDF ici</b></p>' +
+      '<p class="sub">ou sélectionnez depuis Fichiers, iCloud, Drive…</p>' +
+      '<label class="btn primary" for="pdfIn">Choisir des PDF</label>' +
+      '<input id="pdfIn" type="file" accept="application/pdf,.pdf" multiple>' +
+      '</div>' +
+      '<label class="toggle"><input type="checkbox" data-opt="auto"' + (S.opts.auto ? ' checked' : '') + '> Remplir la fiche automatiquement avec l\'IA après l\'import</label>' +
+      '</div>' +
+      '<div class="card stack"><h2>Coller du texte</h2>' +
+      '<input class="in" id="pasteTitle" placeholder="Titre du patron">' +
+      '<textarea class="in" id="pasteText" rows="5" placeholder="Collez le texte du patron ici"></textarea>' +
+      '<button class="btn" data-act="paste">Ajouter ce texte</button>' +
+      '</div>' +
+      '<details class="sec" data-sec="aiSettings"' + (S.open.aiSettings ? ' open' : '') + '>' +
+      '<summary><h3>Configuration de l\'analyse IA (Gemini)</h3></summary>' +
+      '<div class="body">' +
+      '<p class="sub">Si l\'environnement ne fournit pas de clé automatiquement, vous pouvez renseigner votre clé API Google Gemini pour activer l\'extraction automatique, l\'OCR des scans et l\'analyse photo.</p>' +
+      '<label class="fl"><span class="n">Clé API Gemini (optionnel)</span><input class="in" type="password" id="apiKeyIn" placeholder="AIzaSy…" value="' + esc(S.opts.apiKey || '') + '"></label>' +
+      '</div>' +
+      '</details>' +
+      (S.log.length ? '<div class="stack">' + S.log.slice(0, 6).map(function(l) { return '<div class="note ' + (l.ok ? 'ok' : 'bad') + '">' + esc(l.m) + '</div>'; }).join('') + '</div>' : '') +
+      '</div>';
+  }
+
+  function fieldHtml(p, f) {
+    var v = p.f[f.k], id = 'f_' + f.k, badge = p.ai[f.k] ? '<span class="ai">IA</span>' : '', core = f.core ? '<span class="core" title="Champ essentiel"></span>' : '';
+    var lab = '<span class="n">' + core + esc(f.l) + (f.u ? ' (' + esc(f.u) + ')' : '') + badge + '</span>';
+    var hint = f.h ? '<span class="hint">' + esc(f.h) + '</span>' : '';
+    var ev = (p.ai[f.k] && p.ev && p.ev[f.k]) ? '<span class="hint">Dans le patron : « ' + esc(p.ev[f.k]) + ' »</span>' : '';
+    if (f.t === 'multi') {
+      return '<div class="stack" style="gap:6px"><span class="n" style="font-size:14px;font-weight:500;display:flex;gap:6px;align-items:center">' + core + esc(f.l) + badge + '</span><div class="chips" data-chips="' + f.k + '">' + f.o.map(function(o) { return '<button type="button" class="chip' + ((v || []).indexOf(o) >= 0 ? ' on' : '') + '" data-act="chip" data-k="' + f.k + '" data-v="' + esc(o) + '">' + esc(o) + '</button>'; }).join('') + '</div>' + ev + '</div>';
+    }
+    var inp;
+    if (f.t === 'select') inp = '<select class="in" id="' + id + '" data-k="' + f.k + '"><option value="">—</option>' + f.o.map(function(o) { return '<option' + (v === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+    else if (f.t === 'long') inp = '<textarea class="in" id="' + id + '" data-k="' + f.k + '" rows="3">' + esc(v || '') + '</textarea>';
+    else if (f.t === 'number') inp = '<input class="in" id="' + id + '" data-k="' + f.k + '" type="number" inputmode="decimal" step="any" value="' + esc(v === undefined ? '' : v) + '">';
+    else inp = '<input class="in" id="' + id + '" data-k="' + f.k + '" type="text" value="' + esc(v || '') + '">';
+    return '<label class="fl" for="' + id + '">' + lab + inp + hint + ev + '</label>';
+  }
+
+  function gridHtml(p, kind, rows, title) {
+    var sizes = (p.f.sizes && p.f.sizes.length) ? p.f.sizes : SIZES;
+    return '<div class="stack" style="gap:6px"><span class="n" style="font-size:14px;font-weight:500">' + esc(title) + '</span>' +
+      (p.f.sizes && p.f.sizes.length ? '' : '<span class="hint">Choisissez d\'abord les tailles ci-dessus pour limiter le tableau.</span>') +
+      '<div class="scroll-x"><table class="grid"><thead><tr><th></th>' + sizes.map(function(s) { return '<th>' + s + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function(r) {
+        return '<tr><td>' + esc(r[1]) + '</td>' + sizes.map(function(s) {
+          var v = (p.g[kind][r[0]] || {})[s];
+          return '<td><input type="number" inputmode="decimal" step="any" data-g="' + kind + '" data-r="' + r[0] + '" data-s="' + s + '" value="' + esc(v === undefined ? '' : v) + '" aria-label="' + esc(r[1] + ' ' + s) + '"></td>';
+        }).join('') + '</tr>';
+      }).join('') +
+      '</tbody></table></div></div>';
+  }
+
+  function optGridHtml(o, i, sizes, kind, rows) {
+    if (!rows.length) return '';
+    return '<div class="scroll-x"><table class="grid"><thead><tr><th></th>' + sizes.map(function(s) { return '<th>' + s + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function(r) {
+        return '<tr><td>' + esc(r[1]) + '</td>' + sizes.map(function(s) {
+          var v = ((o[kind] || {})[r[0]] || {})[s];
+          return '<td><input type="number" inputmode="decimal" step="any" data-oi="' + i + '" data-og="' + kind + '" data-r="' + r[0] + '" data-s="' + s + '" value="' + esc(v === undefined ? '' : v) + '" aria-label="' + esc(o.name + ' ' + r[1] + ' ' + s) + '"></td>';
+        }).join('') + '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+
+  function optsHtml(p) {
+    var list = p.opts || [], sizes = (p.f.sizes && p.f.sizes.length) ? p.f.sizes : SIZES;
+    var cards = list.map(function(o, i) {
+      var def = GROUPDEF[o.group] || GROUPDEF.Autre;
+      var fs = def.fields.map(function(k) {
+        var f = fieldDef(k), v = o.f[k], inp;
+        if (f.t === 'select') inp = '<select class="in" data-oi="' + i + '" data-of="f:' + k + '"><option value="">—</option>' + f.o.map(function(x) { return '<option' + (v === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>';
+        else if (f.t === 'number') inp = '<input class="in" type="number" inputmode="decimal" step="any" data-oi="' + i + '" data-of="f:' + k + '" value="' + esc(v === undefined ? '' : v) + '">';
+        else inp = '<input class="in" type="text" data-oi="' + i + '" data-of="f:' + k + '" value="' + esc(v || '') + '">';
+        return '<label class="fl"><span class="n">' + esc(f.l) + '</span>' + inp + '</label>';
+      }).join('');
+      var ms = MEASURES.filter(function(r) { return def.m.indexOf(r[0]) >= 0; }), cs = COUNTS.filter(function(r) { return def.c.indexOf(r[0]) >= 0; });
+      return '<div class="opt"><div class="row"><select class="in grow" data-oi="' + i + '" data-of="group" aria-label="Groupe">' + GROUP_NAMES.map(function(g) { return '<option' + (o.group === g ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select>' +
+        (o.ai ? '<span class="ai">IA</span>' : '') + '<button class="btn small danger" data-act="delOpt" data-i="' + i + '">Retirer</button></div>' +
+        '<label class="fl"><span class="n">Nom de l\'option</span><input class="in" type="text" data-oi="' + i + '" data-of="name" value="' + esc(o.name) + '"></label>' +
+        '<label class="fl"><span class="n">Description</span><textarea class="in" rows="2" data-oi="' + i + '" data-of="desc">' + esc(o.desc || '') + '</textarea></label>' +
+        fs + optGridHtml(o, i, sizes, 'measures', ms) + optGridHtml(o, i, sizes, 'counts', cs) +
+        (o.ai && o.q ? '<span class="hint">Dans le patron : « ' + esc(o.q) + ' »</span>' : '') + '</div>';
+    }).join('');
+    return '<details class="sec" data-sec="opts"' + (S.open.opts || list.length ? ' open' : '') + '><summary><h3>Variantes et options</h3><span class="sub num">' + list.length + '</span></summary><div class="body">' +
+      '<p class="hint">Quand un patron propose plusieurs choix (manches longues ou courtes, encolure ronde ou en V, boutons ou zip…), chaque choix est une option avec ses propres mesures et nombres de mailles.</p>' +
+      cards + '<button class="btn small" data-act="addOpt" style="align-self:flex-start">Ajouter une option</button></div></details>';
+  }
+
+  function coverageHtml(p) {
+    var all = ALLF.filter(function(f) { return f.k.indexOf('r_') !== 0; }), miss = all.filter(function(f) { return !filled(p.f[f.k]); });
+    return '<div class="card stack"><h3>Analyse du ' + new Date(p.analysis.at).toLocaleDateString('fr-FR') + '</h3><p class="sub num">' + (all.length - miss.length) + ' champs sur ' + all.length + ' remplis · ' + (p.opts || []).length + ' option(s)</p>' +
+      (miss.length ? '<p class="sub">Non trouvés dans le patron :</p><div class="chips">' + miss.map(function(f) { return '<span class="chip ' + (f.core ? 'warn' : 'mute') + '">' + esc(f.l) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+  }
+
+  function tabFiche(p) {
+    var hasPdf = !!(pdfs.has(p.id) || (p.source && p.source.pdf));
+    var ai = '<div class="card stack"><div><h3>Remplir avec l\'IA</h3><p class="sub">L\'IA lit tout le patron : fiche, tailles, tableaux de mailles et variantes. Vos saisies manuelles ne sont jamais écrasées.</p></div>' +
+      '<div class="row">' +
+      '<button class="btn primary small" data-act="aiFill">Tout remplir</button>' +
+      (p.analysis ? '<button class="btn small" data-act="aiRe">Relire le patron</button>' : '') +
+      (hasPdf ? '<button class="btn small" data-act="aiVisual">Lire les pages (schémas)</button>' : '') +
+      ((p.photos && p.photos.length) ? '<button class="btn small" data-act="aiPhoto">Lire les photos</button>' : '') +
+      '</div></div>';
+
+    var secs = SCHEMA.map(function(s) {
+      var n = 0, d = 0;
+      s.f.forEach(function(f) { if (f.k[0] !== '@' && f.core) { n++; if (filled(p.f[f.k])) d++; } });
+      return '<details class="sec" data-sec="' + s.id + '"' + (S.open[s.id] ? ' open' : '') + '><summary><h3>' + esc(s.t) + '</h3>' + (n ? '<span class="sub num">' + d + '/' + n + '</span>' : '') + '</summary><div class="body">' +
+        s.f.map(function(f) {
+          return f.k === '@measures' ? gridHtml(p, 'measures', MEASURES, 'Mesures finies (cm)') :
+            f.k === '@counts' ? gridHtml(p, 'counts', COUNTS, 'Nombres de mailles et de rangs') :
+            fieldHtml(p, f);
+        }).join('') + '</div></details>';
+    }).join('');
+    return '<div class="stack">' + ai + optsHtml(p) + secs + '<p class="hint"><span class="core"></span> Champ essentiel pour que la fiche soit comptée comme complète.</p></div>';
+  }
+
+  function tabTexte(p) {
+    var c = proc(p), words = c.clean ? c.clean.split(/\s+/).length : 0, o = S.opts;
+    var body;
+    if (S.tv === 'raw') body = '<textarea class="in" id="rawText" rows="14" placeholder="Texte brut du patron">' + esc(p.raw || '') + '</textarea>';
+    else if (S.tv === 'clean') body = '<div class="card"><pre class="txt">' + esc(c.clean || '(vide)') + '</pre></div>';
+    else body = '<div class="stack" style="gap:8px">' + (c.chunks.length ? c.chunks.map(function(k) {
+      var ok = k.words >= o.min && k.words <= o.max;
+      return '<div class="chunk"><small>' + (k.section ? esc(k.section) + ' · ' : '') + 'bloc ' + k.i + ' · <span class="' + (ok ? '' : 'warn') + '">' + k.words + ' mots</span></small><span>' + esc(k.text) + '</span></div>';
+    }).join('') : '<p class="sub">Aucun bloc.</p>') + '</div>';
+
+    var avg = c.chunks.length ? Math.round(c.chunks.reduce(function(a, b) { return a + b.words; }, 0) / c.chunks.length) : 0;
+    var hasPdf = !!(pdfs.has(p.id) || (p.source && p.source.pdf));
+    return '<div class="stack">' +
+      (p.scanned ? '<div class="note warn"><div>Ce PDF semble scanné (image sans texte sélectionnable).' + (hasPdf ? ' <button class="btn small" data-act="aiRead" style="margin-top:8px">Transcrire avec l\'IA</button>' : ' Associez le PDF pour le transcrire avec l\'IA.') + '</div></div>' : '') +
+      '<div class="card stack"><div class="sub num">' + words + ' mots · ' + c.chunks.length + ' blocs · moyenne ' + avg + ' mots</div>' +
+      '<label class="toggle"><input type="checkbox" data-opt="headers"' + (o.headers ? ' checked' : '') + '> Retirer les en-têtes et pieds de page répétés</label>' +
+      '<label class="toggle"><input type="checkbox" data-opt="expand"' + (o.expand ? ' checked' : '') + '> Écrire les abréviations en toutes lettres</label>' +
+      '<div class="row"><label class="fl grow"><span class="n">Mots min.</span><input class="in" type="number" inputmode="numeric" data-opt="min" value="' + o.min + '"></label>' +
+      '<label class="fl grow"><span class="n">Mots max.</span><input class="in" type="number" inputmode="numeric" data-opt="max" value="' + o.max + '"></label></div>' +
+      '<p class="hint">Ces réglages s\'appliquent à l\'ensemble des patrons.</p></div>' +
+      '<div class="seg" role="tablist">' + [['raw', 'Brut'], ['clean', 'Nettoyé'], ['chunks', 'Blocs']].map(function(t) { return '<button data-act="tv" data-v="' + t[0] + '" class="' + (S.tv === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' +
+      body + '</div>';
+  }
+
+  function tabPhotos(p) {
+    var ph = p.photos || [];
+    var add = '<div class="card stack" id="photoDrop"><h3>Ajouter des photos</h3><p class="sub">Glissez-déposez des images ici ou choisissez leur catégorie :</p><div class="row">' +
+      KINDS.map(function(k) {
+        return '<label class="btn small" for="ph_' + k[0] + '">' + esc(k[1]) + '</label><input id="ph_' + k[0] + '" type="file" accept="image/*" multiple data-kind="' + k[0] + '">';
+      }).join('') + '</div></div>';
+
+    var grid = ph.length ? '<div class="photos">' + ph.map(function(x, i) {
+      var u = getBlobUrl(x.id);
+      var imgTag = u ? '<img loading="lazy" alt="' + esc(x.kind) + '" src="' + esc(u) + '">' :
+        '<img loading="lazy" alt="' + esc(x.kind) + '" data-blob-id="' + esc(x.id) + '" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">';
+      return '<div class="photo">' + imgTag + '<div class="pc">' +
+        '<select class="in" data-pk="' + i + '" aria-label="Type de photo">' +
+        KINDS.map(function(k) { return '<option value="' + k[0] + '"' + (x.kind === k[0] ? ' selected' : '') + '>' + esc(k[1]) + '</option>'; }).join('') +
+        '</select><button class="btn small danger" data-act="delPhoto" data-i="' + i + '">Retirer</button></div></div>';
+    }).join('') + '</div>' : '<p class="sub">Aucune photo. Ajoutez la photo du patron et celle du résultat tricoté pour relier le texte au rendu réel.</p>';
+
+    return '<div class="stack">' + add + grid + '</div>';
+  }
+
+  function gaugeSimHtml(p) {
+    var gs = +p.f.gauge_sts || 0, gr = +p.f.gauge_rows || 0;
+    var sizes = (p.f.sizes && p.f.sizes.length) ? p.f.sizes : SIZES;
+    var simSts = +(S.sim.sts || p.f.r_sts || gs || '');
+    var simRows = +(S.sim.rows || p.f.r_rows || gr || '');
+
+    var content = '';
+    if (!gs) {
+      content = '<p class="sub">Renseignez d\'abord l\'échantillon du patron (mailles pour 10 cm) dans l\'onglet Fiche pour activer le simulateur.</p>';
+    } else {
+      var ratioS = simSts ? (simSts / gs) : 1;
+      var ratioR = (gr && simRows) ? (simRows / gr) : 1;
+      var diffPct = simSts ? Math.round((ratioS - 1) * 100) : 0;
+      var rowsToSim = [
+        ['caston', 'Montage corps (m.)', ratioS],
+        ['chest', 'Tour poitrine (m.)', ratioS],
+        ['sl_caston', 'Montage manche (m.)', ratioS],
+        ['rows_body', 'Rangs du corps', ratioR]
+      ].filter(function(r) {
+        return sizes.some(function(s) { return filled((p.g.counts[r[0]] || {})[s]); });
+      });
+
+      content = '<div class="row">' +
+        '<label class="fl grow"><span class="n">Votre échantillon (m. / 10 cm)</span><input class="in" type="number" inputmode="decimal" step="any" data-sim="sts" placeholder="' + gs + '" value="' + esc(S.sim.sts || p.f.r_sts || '') + '"></label>' +
+        '<label class="fl grow"><span class="n">Vos rangs (/ 10 cm)</span><input class="in" type="number" inputmode="decimal" step="any" data-sim="rows" placeholder="' + (gr || '—') + '" value="' + esc(S.sim.rows || p.f.r_rows || '') + '"></label>' +
+        '</div>' +
+        (simSts && simSts !== gs ? '<p class="sub">Écart de densité : <b>' + (diffPct > 0 ? '+' : '') + diffPct + ' %</b> par rapport au patron (' + gs + ' m.).</p>' : '') +
+        (rowsToSim.length ?
+          '<div class="scroll-x"><table class="grid"><thead><tr><th></th>' + sizes.map(function(s) { return '<th>' + s + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          rowsToSim.map(function(r) {
+            return '<tr><td>' + esc(r[1]) + '</td>' + sizes.map(function(s) {
+              var orig = +(p.g.counts[r[0]] || {})[s];
+              if (!orig) return '<td class="sub">—</td>';
+              var conv = Math.round(orig * r[2]);
+              return '<td class="num"><b>' + conv + '</b>' + (conv !== orig ? '<br><span class="sub" style="font-size:11px">(' + orig + ')</span>' : '') + '</td>';
+            }).join('') + '</tr>';
+          }).join('') +
+          '</tbody></table></div>' : '<p class="sub">Remplissez des comptes de mailles dans le tableau des tailles pour voir la conversion.</p>');
+    }
+
+    return '<div class="card stack"><h3>Simulateur d\'échantillon (Multi-gauge)</h3>' + content + '</div>';
+  }
+
+  function tabChecks(p) {
+    var cs = checks(p), c = Math.round(completeness(p) * 100);
+    return '<div class="stack">' +
+      '<div class="card stack"><h3>Fiche complète à ' + c + ' %</h3><div class="bar"><i style="width:' + c + '%"></i></div>' +
+      '<label class="fl"><span class="n">Statut du patron</span><select class="in" data-status="1">' +
+      ['brouillon', 'à vérifier', 'validé'].map(function(s) { return '<option' + (p.status === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
+      '</select><span class="hint">Seuls les patrons « validés » sont inclus lorsque l\'option de filtre est active à l\'export.</span></label></div>' +
+      (p.analysis ? coverageHtml(p) : '') +
+      (cs.length ? cs.map(function(x) { return '<div class="note ' + x[0] + '">' + esc(x[1]) + '</div>'; }).join('') : '<div class="note ok">Aucun problème de cohérence détecté.</div>') +
+      gaugeSimHtml(p) +
+      '<div class="card stack"><h3>Supprimer</h3>' +
+      (S.delAsk ? '<p class="sub">Supprimer définitivement « ' + esc(p.title) + ' » et ses fichiers associés ?</p><div class="row"><button class="btn danger small" data-act="delYes">Oui, supprimer</button><button class="btn small" data-act="delNo">Annuler</button></div>' :
+        '<button class="btn danger small" data-act="delAsk" style="align-self:flex-start">Supprimer ce patron</button>') +
+      '</div></div>';
+  }
+
+  function tabPdf(p) {
+    var has = !!(pdfs.has(p.id) || (p.source && p.source.pdf));
+    return '<div class="stack"><div class="card row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap">' +
+      (p.thumb ? '<button class="cover" data-act="viewPdf" data-id="' + esc(p.id) + '" style="width:110px;flex:none;border-radius:8px" aria-label="Voir le PDF">' + coverImgHtml(p, 'Première page') + '</button>' : '') +
+      '<div class="stack grow"><span class="sub">' + esc((p.source && p.source.file) || 'Aucun PDF') + (p.source && p.source.pages ? ' · ' + p.source.pages + ' pages' : '') + '</span>' +
+      (has ? '<button class="btn primary" data-act="viewPdf" data-id="' + esc(p.id) + '">Ouvrir la visionneuse PDF</button>' :
+        '<div class="note warn">Aucun fichier PDF enregistré pour ce patron. Associez-en un ci-dessous.</div>') +
+      (has ? '<button class="btn small" data-act="savePdf" data-id="' + esc(p.id) + '">Télécharger le PDF</button>' : '') +
+      '<label class="btn small" for="attachIn">' + (has ? 'Remplacer le PDF' : 'Associer un PDF') + '</label><input id="attachIn" type="file" accept="application/pdf,.pdf">' +
+      '</div></div></div>';
+  }
+
+  function viewDet() {
+    var p = cur();
+    if (!p) { S.tab = 'lib'; return viewLib(); }
+    var c = Math.round(completeness(p) * 100);
+    var subs = [['fiche', 'Fiche'], ['texte', 'Texte'], ['pdf', 'PDF'], ['photos', 'Photos'], ['ctl', 'Contrôles']];
+    var warn = checks(p).filter(function(x) { return x[0] !== 'ok'; }).length;
+    return '<div class="top"><button class="icon-btn" data-act="back" aria-label="Retour">' + ico('back') + '</button><input class="in grow" id="title" value="' + esc(p.title) + '" aria-label="Titre"></div>' +
+      '<div class="row" style="margin-bottom:12px"><span class="bar grow"><i id="cbar" style="width:' + c + '%"></i></span><span class="sub num" id="cpct">' + c + ' %</span>' + statusChip(p.status) + '</div>' +
+      '<label class="fl" style="margin-bottom:12px"><span class="n">Dossier</span><select class="in" data-folder="1" aria-label="Dossier"><option value="">Sans dossier</option>' +
+      S.folders.map(function(f) { return '<option value="' + esc(f.id) + '"' + (p.folder === f.id ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') +
+      '</select></label>' +
+      '<div class="seg" style="margin-bottom:12px">' + subs.map(function(s) {
+        return '<button data-act="sub" data-v="' + s[0] + '" class="' + (S.sub === s[0] ? 'on' : '') + '">' + s[1] + (s[0] === 'ctl' && warn ? ' (' + warn + ')' : '') + '</button>';
+      }).join('') + '</div>' +
+      (S.sub === 'fiche' ? tabFiche(p) : S.sub === 'texte' ? tabTexte(p) : S.sub === 'pdf' ? tabPdf(p) : S.sub === 'photos' ? tabPhotos(p) : tabChecks(p));
+  }
+
+  function viewExp() {
+    var ps = selected(), chunks = 0, ph = 0;
+    ps.forEach(function(p) { chunks += proc(p).chunks.length; ph += (p.photos || []).length; });
+    var F = [
+      ['patterns.jsonl', 'Patrons complets (JSONL)', 'Fiche, tableaux, texte nettoyé et blocs, un patron par ligne.'],
+      ['chunks.jsonl', 'Blocs de texte (RAG)', 'Blocs de 20 à 30 mots avec leur section.'],
+      ['finetune.jsonl', 'Paires d\'entraînement', 'Description du vêtement, puis patron, avec les images de référence.'],
+      ['patterns.csv', 'Tableur (CSV)', 'Une ligne par patron, tous les champs et tailles.'],
+      ['schema.json', 'Schéma des données', 'Définition structurée de tous les champs.']
+    ];
+    return '<div class="top"><h1>Export & Sauvegarde</h1></div><div class="stack">' +
+      '<div class="card stack"><div class="sub num">' + ps.length + ' patron(s) sélectionné(s) · ' + chunks + ' blocs · ' + ph + ' photo(s)</div>' +
+      '<label class="toggle"><input type="checkbox" data-exp="valid"' + (S.exp.valid ? ' checked' : '') + '> Seulement les patrons validés</label>' +
+      '<label class="toggle"><input type="checkbox" data-exp="photos"' + (S.exp.photos ? ' checked' : '') + '> Inclure les photos dans l\'archive ZIP</label>' +
+      '<button class="btn primary" data-act="zip"' + (ps.length ? '' : ' disabled') + '>Télécharger l\'archive complète (.zip)</button>' +
+      '</div>' +
+      '<h2>Fichiers séparés</h2>' +
+      F.map(function(f) {
+        return '<div class="card row"><div class="grow"><h3>' + f[1] + '</h3><p class="sub">' + f[2] + '</p></div><button class="btn small" data-act="file" data-v="' + f[0] + '"' + (ps.length ? '' : ' disabled') + '>Télécharger</button></div>';
+      }).join('') +
+      '<h2>Restaurer une sauvegarde</h2>' +
+      '<div class="card stack"><p class="sub">Importez une archive <b>carnet-patrons.zip</b> ou un fichier <b>patterns.jsonl</b> pour restaurer vos patrons et photos sur cet appareil.</p>' +
+      '<label class="btn" for="restoreIn">Importer une sauvegarde (.zip / .jsonl)</label>' +
+      '<input id="restoreIn" type="file" accept=".zip,.jsonl,application/zip,application/json">' +
+      '</div>' +
+      '</div>';
+  }
+
+  function viewGuide() {
+    var n = ALLF.length;
+    return '<div class="top"><h1>Champs de la fiche</h1></div><p class="sub" style="margin-bottom:12px">' + n + ' champs et 2 tableaux par taille. Un point bleu marque les champs essentiels.</p><div class="stack guide">' +
+      SCHEMA.map(function(s) {
+        return '<div class="card"><h3>' + esc(s.t) + '</h3><p class="sub">' + esc(s.why) + '</p><ul>' + s.f.map(function(f) {
+          if (f.k === '@measures') return '<li><b>Tableau des mesures finies</b> : ' + MEASURES.map(function(m) { return esc(m[1]); }).join(', ') + ' pour chaque taille.</li>';
+          if (f.k === '@counts') return '<li><b>Tableau des mailles et rangs</b> : ' + COUNTS.map(function(m) { return esc(m[1]); }).join(', ') + ' pour chaque taille.</li>';
+          return '<li>' + (f.core ? '<span class="core"></span> ' : '') + esc(f.l) + (f.u ? ' (' + esc(f.u) + ')' : '') + (f.o ? ' <span class="sub">: ' + esc(f.o.join(', ')) + '</span>' : '') + '</li>';
+        }).join('') + '</ul></div>';
+      }).join('') + '</div>';
+  }
+
+  function render() {
+    var a = document.activeElement, keepId = a && a.id && /^(q|title|rawText|pasteText|pasteTitle|newFolder|renameIn|apiKeyIn)$/.test(a.id) ? a.id : null;
+    var h = '';
+    if (S.tab === 'lib') h = viewLib();
+    else if (S.tab === 'add') h = viewAdd();
+    else if (S.tab === 'det') h = viewDet();
+    else if (S.tab === 'exp') h = viewExp();
+    else h = viewGuide();
+
+    if (S.busy) {
+      h += '<div class="note info" style="position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:25;max-width:688px;margin:0 auto;box-shadow:0 4px 16px rgba(0,0,0,0.2)">' +
+        '<span class="spin"></span><span class="grow">' + esc(S.busy) + '</span><button class="btn small" data-act="cancel">Annuler</button></div>';
+    }
+    $('#app').innerHTML = h + tabbar();
+    if (keepId) {
+      var e = document.getElementById(keepId);
+      if (e) e.focus();
+    }
+    resolveLazyImages();
+    if (S.tab === 'lib') queueThumbs();
+  }
+
+  /* ============ Événements et interactions ============ */
+  function refreshMeta(p) {
+    var c = Math.round(completeness(p) * 100), b = $('#cbar'), t = $('#cpct');
+    if (b) b.style.width = c + '%';
+    if (t) t.textContent = c + ' %';
+  }
+
+  document.addEventListener('input', function(e) {
+    var t = e.target, p = cur();
+    if (t.id === 'q') { S.q = t.value; $('#list').innerHTML = listHtml(); resolveLazyImages(); return; }
+    if (t.id === 'apiKeyIn') { S.opts.apiKey = t.value; keep('carnet.opts', S.opts); return; }
+    if (t.dataset.opt) {
+      var k = t.dataset.opt;
+      S.opts[k] = t.type === 'checkbox' ? t.checked : Math.max(1, parseInt(t.value, 10) || S.opts[k]);
+      keep('carnet.opts', S.opts);
+      if (t.type === 'checkbox') render();
+      return;
+    }
+    if (t.dataset.exp) { S.exp[t.dataset.exp] = t.checked; render(); return; }
+    if (t.dataset.autofile) { S.opts.autoFile = t.value; keep('carnet.opts', S.opts); return; }
+    if (t.dataset.sim) { S.sim[t.dataset.sim] = t.value; render(); return; }
+    if (!p) return;
+
+    if (t.id === 'title') { p.title = t.value; saveSoon(p); return; }
+    if (t.id === 'rawText') { p.raw = t.value.slice(0, 90000); p._v = (p._v || 0) + 1; saveSoon(p); return; }
+    if (t.dataset.status) { p.status = t.value; persist(); render(); return; }
+    if (t.dataset.folder) { if (t.value) p.folder = t.value; else delete p.folder; persist(); return; }
+    if (t.dataset.pk !== undefined) { p.photos[+t.dataset.pk].kind = t.value; persist(); return; }
+
+    if (t.dataset.oi !== undefined) {
+      var o = (p.opts || [])[+t.dataset.oi];
+      if (!o) return;
+      if (t.dataset.og) {
+        var gg = o[t.dataset.og] = o[t.dataset.og] || {}, rr = t.dataset.r, ss = t.dataset.s;
+        gg[rr] = gg[rr] || {};
+        if (t.value === '') delete gg[rr][ss];
+        else gg[rr][ss] = parseFloat(t.value);
+        if (p.gai) delete p.gai[o.id + '.' + t.dataset.og + '.' + rr + '.' + ss];
+      } else {
+        var key = t.dataset.of;
+        if (key.indexOf('f:') === 0) {
+          var fk = key.slice(2), ff = fieldDef(fk), vv = t.value;
+          if (ff && ff.t === 'number') vv = vv === '' ? '' : parseFloat(vv);
+          if (vv === '' || vv === undefined) delete o.f[fk];
+          else o.f[fk] = vv;
+        } else o[key] = t.value;
+        o.ai = 0;
+        if (key === 'group') { persist(); render(); return; }
+      }
+      saveSoon(p);
+      return;
+    }
+
+    if (t.dataset.k) {
+      var f = ALLF.find(function(x) { return x.k === t.dataset.k; });
+      var v = t.value;
+      if (f && f.t === 'number') v = v === '' ? '' : parseFloat(v);
+      if (v === '' || v === undefined) delete p.f[t.dataset.k];
+      else p.f[t.dataset.k] = v;
+      delete p.ai[t.dataset.k];
+      saveSoon(p);
+      refreshMeta(p);
+      var lab = t.closest('label');
+      if (lab) { var b = lab.querySelector('.ai'); if (b) b.remove(); }
+      return;
+    }
+
+    if (t.dataset.g) {
+      var g = p.g[t.dataset.g], r = t.dataset.r, s = t.dataset.s;
+      g[r] = g[r] || {};
+      if (t.value === '') delete g[r][s];
+      else g[r][s] = parseFloat(t.value);
+      if (p.gai) delete p.gai[t.dataset.g + '.' + r + '.' + s];
+      saveSoon(p);
+      refreshMeta(p);
+    }
+  });
+
+  document.addEventListener('change', function(e) {
+    var t = e.target;
+    if (t.id === 'pdfIn' && t.files && t.files.length) {
+      var fs = Array.from(t.files);
+      t.value = '';
+      handleFiles(fs);
+      return;
+    }
+    if (t.id === 'attachIn' && t.files && t.files.length) {
+      var af = t.files[0], ap = cur();
+      t.value = '';
+      if (ap) attachPdf(ap, af);
+      return;
+    }
+    if (t.id === 'restoreIn' && t.files && t.files.length) {
+      var rf = t.files[0];
+      t.value = '';
+      restoreBackup(rf);
+      return;
+    }
+    if (t.dataset.kind && t.files && t.files.length) {
+      var p = cur(), fs2 = Array.from(t.files), k = t.dataset.kind;
+      t.value = '';
+      if (p) addPhotos(p, fs2, k);
+      return;
+    }
+    if (t.dataset.opt && t.type !== 'checkbox') render();
+  });
+
+  document.addEventListener('toggle', function(e) {
+    var d = e.target;
+    if (d.classList && d.classList.contains('sec')) S.open[d.dataset.sec] = d.open ? 1 : 0;
+  }, true);
+
+  document.addEventListener('click', function(e) {
+    var b = e.target.closest('[data-act]');
+    if (!b) return;
+    var a = b.dataset.act, v = b.dataset.v, p = cur();
+
+    if (a === 'tab') { S.tab = v; S.delAsk = false; render(); window.scrollTo(0, 0); }
+    else if (a === 'toggleTheme') {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+        (!document.documentElement.hasAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      S.theme = isDark ? 'light' : 'dark';
+      keep('carnet.theme', S.theme);
+      applyTheme();
+      render();
+    }
+    else if (a === 'fStatus') { S.fStatus = v; render(); }
+    else if (a === 'fDiff') { S.fDiff = (S.fDiff === v ? 'all' : v); render(); }
+    else if (a === 'resetFilters') { S.q = ''; S.fStatus = 'all'; S.fDiff = 'all'; render(); }
+    else if (a === 'open') openP(b.dataset.id);
+    else if (a === 'back') { if (p) persist(); S.tab = 'lib'; render(); window.scrollTo(0, 0); }
+    else if (a === 'sub') { S.sub = v; render(); }
+    else if (a === 'tv') { S.tv = v; render(); }
+    else if (a === 'chip' && p) {
+      var f = ALLF.find(function(x) { return x.k === b.dataset.k; }), arr = (p.f[f.k] || []).slice(), i = arr.indexOf(v);
+      if (i >= 0) arr.splice(i, 1);
+      else arr.push(v);
+      if (f.k === 'sizes') arr.sort(function(x, y) { return SIZES.indexOf(x) - SIZES.indexOf(y); });
+      if (arr.length) p.f[f.k] = arr;
+      else delete p.f[f.k];
+      delete p.ai[f.k];
+      persist();
+      if (f.k === 'sizes') render();
+      else { b.classList.toggle('on'); refreshMeta(p); }
+    }
+    else if (a === 'paste') {
+      var tx = ($('#pasteText').value || '').trim();
+      if (!tx) { toast('Collez d\'abord du texte.'); return; }
+      var np = newPattern(($('#pasteTitle').value || '').trim() || 'Patron collé', tx.slice(0, 90000), { pasted: 1 });
+      if (S.opts.autoFile) autoFile(np, S.opts.autoFile);
+      S.patterns.unshift(np);
+      persist();
+      openP(np.id);
+    }
+    else if (a === 'grp') { S.group = v; keep('carnet.group', v); render(); }
+    else if (a === 'addF') {
+      var nm = ($('#newFolder').value || '').trim();
+      if (!nm) toast('Donnez un nom au dossier.');
+      else if (S.folders.some(function(f) { return gkey(f.name) === gkey(nm); })) toast('Ce dossier existe déjà.');
+      else {
+        var nf = { id: 'd' + uid(), name: nm, created: Date.now() };
+        S.folders.push(nf);
+        saveFolders();
+        render();
+      }
+    }
+    else if (a === 'renF') { S.renameId = b.dataset.id; S.delF = null; render(); }
+    else if (a === 'renCancel') { S.renameId = null; render(); }
+    else if (a === 'renSave') {
+      var rn = ($('#renameIn').value || '').trim(), rf = S.folders.find(function(f) { return f.id === b.dataset.id; });
+      if (rf && rn) { rf.name = rn; saveFolders(); }
+      S.renameId = null;
+      render();
+    }
+    else if (a === 'delF') { S.delF = b.dataset.id; S.renameId = null; render(); }
+    else if (a === 'delFNo') { S.delF = null; render(); }
+    else if (a === 'delFYes') {
+      var df = S.folders.find(function(f) { return f.id === b.dataset.id; });
+      if (df) {
+        S.patterns.forEach(function(x) { if (x.folder === df.id) delete x.folder; });
+        S.folders = S.folders.filter(function(f) { return f.id !== df.id; });
+        saveFolders();
+        persist();
+      }
+      S.delF = null;
+      render();
+    }
+    else if (a === 'autoAuthor') { autoFileAll('author'); render(); }
+    else if (a === 'autoGarment') { autoFileAll('garment'); render(); }
+    else if (a === 'viewPdf') {
+      var vp = S.patterns.find(function(x) { return x.id === b.dataset.id; });
+      if (vp) {
+        if (pdfs.has(vp.id) || (vp.source && vp.source.pdf)) openViewer(vp);
+        else { openP(vp.id); S.sub = 'pdf'; render(); }
+      }
+    }
+    else if (a === 'savePdf') {
+      var sp = S.patterns.find(function(x) { return x.id === b.dataset.id; });
+      if (sp && sp.source && sp.source.pdf) {
+        loadBlob(sp.source.pdf).then(function(bl) {
+          if (bl) downloadBlob((sp.source.file || 'patron.pdf').replace(/[^\w.\- ]+/g, '_'), bl);
+          else toast('PDF introuvable en mémoire.');
+        });
+      }
+    }
+    else if (a === 'vclose') closeViewer();
+    else if (a === 'vzoomin') setZoom(V.zoom + 0.5);
+    else if (a === 'vzoomout') setZoom(V.zoom - 0.5);
+    else if (a === 'cancel') { if (S.ctl) S.ctl.abort(); S.busy = ''; render(); }
+    else if (a === 'aiFill' && p) analyze(p);
+    else if (a === 'aiRe' && p) analyze(p, { over: true });
+    else if (a === 'aiVisual' && p) aiVisual(p);
+    else if (a === 'addOpt' && p) {
+      p.opts = p.opts || [];
+      p.opts.push({ id: uid(), group: 'Manches', name: '', desc: '', f: {}, measures: {}, counts: {}, ai: 0 });
+      S.open.opts = 1;
+      persist();
+      render();
+    }
+    else if (a === 'delOpt' && p) { p.opts.splice(+b.dataset.i, 1); persist(); render(); }
+    else if (a === 'aiPhoto' && p) aiPhoto(p);
+    else if (a === 'aiRead' && p) readAndAnalyze(p);
+    else if (a === 'delPhoto' && p) {
+      var rem = p.photos.splice(+b.dataset.i, 1)[0];
+      if (rem && rem.id) IDB.del(rem.id);
+      persist();
+      render();
+    }
+    else if (a === 'delAsk') { S.delAsk = true; render(); }
+    else if (a === 'delNo') { S.delAsk = false; render(); }
+    else if (a === 'delYes' && p) { removeP(p); S.tab = 'lib'; S.cur = null; S.delAsk = false; render(); toast('Patron supprimé.'); }
+    else if (a === 'zip') exportZip();
+    else if (a === 'file') {
+      var fl = buildFiles();
+      downloadBlob(v, fl[v]);
+    }
+  });
+
+  /* Glisser-déposer (Drag & Drop) */
+  document.addEventListener('dragover', function(e) {
+    var dz = e.target.closest('#pdfDrop, #photoDrop');
+    if (dz) {
+      e.preventDefault();
+      dz.classList.add('dragover');
+    }
+  });
+  document.addEventListener('dragleave', function(e) {
+    var dz = e.target.closest('#pdfDrop, #photoDrop');
+    if (dz && !dz.contains(e.relatedTarget)) {
+      dz.classList.remove('dragover');
+    }
+  });
+  document.addEventListener('drop', function(e) {
+    var pdfDz = e.target.closest('#pdfDrop');
+    if (pdfDz) {
+      e.preventDefault();
+      pdfDz.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        handleFiles(Array.from(e.dataTransfer.files));
+      }
+      return;
+    }
+    var photoDz = e.target.closest('#photoDrop');
+    if (photoDz && cur()) {
+      e.preventDefault();
+      photoDz.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        var imgs = Array.from(e.dataTransfer.files).filter(function(f) { return f.type.indexOf('image/') === 0; });
+        if (imgs.length) addPhotos(cur(), imgs, 'modele');
+      }
+    }
+  });
+
+  /* Défilement de la visionneuse PDF et raccourci Échap */
+  (function() {
+    var sc = $('#vscroll'), ticking = false;
+    sc.addEventListener('scroll', function() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function() {
+        ticking = false;
+        pageLabel();
+        renderVisible();
+      });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !$('#viewer').hidden) closeViewer();
+    });
+  })();
+
+  /* Initialisation */
+  IDB.open().catch(function() {}).finally(function() {
+    render();
+  });
+})();
+</script>
+</body>
+</html>
