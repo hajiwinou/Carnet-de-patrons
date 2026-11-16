@@ -1,0 +1,4 @@
+/* Catalogue des thèmes externes — version 1.0.0.
+   Ajouter les futurs imports ici : index.html gardera le même lien.
+   Chaque feuille doit rester limitée à son propre thème. */
+@import url("./bliss.css?v=1.0.0");
