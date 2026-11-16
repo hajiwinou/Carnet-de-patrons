@@ -1,1 +1,3 @@
 <link id="atelier-themes" rel="stylesheet" href="./themes/themes.css?v=1.0.0">
+1. Pour le compteur de rang je veux une option qui me permet d’entrer le nombre de rangs que je veux tricoter, et faire +1, +10 ou +x (nombre que j’aurais choisi) une fois que je l’atteints, ce compteur precis disparait, mes rangs sont dans tous les cas comptabilisé dans mes statistiques de wip et je peux en creer un autre en appuyant sur un petit texte (option)sous la bulle +1/-1 de mes wips (sur le pdf du pattern ET sur la page du wip), tout doit faire en sorte que ca ne derange pas la lecture du pattern
+integrer une calculatrice dans mes outils aux couleurs du theme
