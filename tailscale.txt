@@ -1,0 +1,6 @@
+"nodeAttrs": [
+  {
+    "target": ["autogroup:member"],
+    "attr": ["disable-split-dns-when-no-custom-resolvers"]
+  }
+],
