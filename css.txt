@@ -1,3 +1,8 @@
 <link id="atelier-themes" rel="stylesheet" href="./themes/themes.css?v=1.0.0">
-1. Pour le compteur de rang je veux une option qui me permet d’entrer le nombre de rangs que je veux tricoter, et faire +1, +10 ou +x (nombre que j’aurais choisi) une fois que je l’atteints, ce compteur precis disparait, mes rangs sont dans tous les cas comptabilisé dans mes statistiques de wip et je peux en creer un autre en appuyant sur un petit texte (option)sous la bulle +1/-1 de mes wips (sur le pdf du pattern ET sur la page du wip), tout doit faire en sorte que ca ne derange pas la lecture du pattern
-integrer une calculatrice dans mes outils aux couleurs du theme
+4. Sur le pdf qd on est dans un wip, pourquoi tu as mis le bouton « recentrer » il ne sert à rien, quelle est l’idee derriere ça?
+5. Sur le pdf qd on est dans un wip, je veux etre capable de rajouter des petites notes qui seront (si je les enregistre, des entrées dans mon journal), ça ne doit pas gener la lecture de mon pdf
+6. Verifie si il y a des choses qui n’ont pas été faites plusieurs fois dans tout mon code, si il y a des choses qui se contredisent ect ect
+7. Qd j’appuie sur le fluo dans le pdf dans un wip, ca dit mode surlignage activé et quand je reappuie dessus, ca me met mode annotation desactivé, ce n’est pas logique
+8. La facon dont mes outils s’ouvrent sur le pdf n’est pas ergonomique du tout et pour fermer les outils c’est encore pire … tu dois regler ça utilise ta meilleure idee 😍
+9. On pourrait demander a l’utilisateur si on ouvre directement dans la page ou il y a le repere : je veux que tu annules ça pcq ca ne sert à rien, je prefere directement que le pdf s’ouvre automatiquement à l’endroit où il y a le repere (dans les pdf des wip)
+10. Une fonction ajouter des marqueurs dans le pattern: en gros moi j’aime bien marquer mes rows et du coup en appuyant sur ajouter stitch marker, je peux marquer un row en particulier 😎 je pourrais les placer a gauche dans la marge avant une phrase 
