@@ -1,7 +1,35 @@
-const storage = await window.dreamOS.services.resolve('storageManager');
-const keys = await storage.keys();
-
-({
-  keyCount: keys.length,
-  hasPatternMirror: keys.includes('meta_patterns')
-});
+Object { keyCount: 23, hasPatternMirror: true }
+​
+hasPatternMirror: true
+​
+keyCount: 23
+​
+<prototype>: Object { … }
+​​
+__defineGetter__: function __defineGetter__()
+​​
+__defineSetter__: function __defineSetter__()
+​​
+__lookupGetter__: function __lookupGetter__()
+​​
+__lookupSetter__: function __lookupSetter__()
+​​
+__proto__: 
+​​
+constructor: function Object()
+​​
+hasOwnProperty: function hasOwnProperty()
+​​
+isPrototypeOf: function isPrototypeOf()
+​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​
+toLocaleString: function toLocaleString()
+​​
+toString: function toString()
+​​
+valueOf: function valueOf()
+​​
+<get __proto__()>: function __proto__()
+​​
+<set __proto__()>: function __proto__()
