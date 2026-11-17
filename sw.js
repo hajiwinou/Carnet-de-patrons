@@ -1,14 +1,66 @@
 /* Service worker : permet d'ouvrir l'atelier sans connexion */
-var CACHE = 'atelier-tricot-v1';
+var CACHE = 'atelier-tricot-v2';
 var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
 ];
+/* Fichiers du site, mis en cache dès l'installation pour le mode hors-ligne */
+var LOCAL = [
+  './',
+  'index.html',
+  'styles.css',
+  'styles-late.css',
+  'app.js',
+  'app-late.js',
+  'themes/themes.css?v=1.0.0',
+  'assets/bliss.jpg',
+  'assets/icons/bookmark.png',
+  'assets/icons/calculator.png',
+  'assets/icons/camera.png',
+  'assets/icons/cat_bag.png',
+  'assets/icons/cat_beanie.png',
+  'assets/icons/cat_blanket.png',
+  'assets/icons/cat_cardigan.png',
+  'assets/icons/cat_dress.png',
+  'assets/icons/cat_mittens.png',
+  'assets/icons/cat_other.png',
+  'assets/icons/cat_pants.png',
+  'assets/icons/cat_pull.png',
+  'assets/icons/cat_scarf.png',
+  'assets/icons/cat_shawl.png',
+  'assets/icons/cat_skirt.png',
+  'assets/icons/cat_socks.png',
+  'assets/icons/cat_top.png',
+  'assets/icons/cat_vest.png',
+  'assets/icons/chart.png',
+  'assets/icons/cloud.png',
+  'assets/icons/computer.png',
+  'assets/icons/folder.png',
+  'assets/icons/folder_pixel.png',
+  'assets/icons/notebook.png',
+  'assets/icons/palette.png',
+  'assets/icons/pdf.png',
+  'assets/icons/photo.png',
+  'assets/icons/recycle.png',
+  'assets/icons/search.png',
+  'assets/icons/settings.png',
+  'assets/icons/sweater.png',
+  'assets/icons/yarn.png',
+  'assets/island/chat.webp',
+  'assets/island/chenille.webp',
+  'assets/island/chien.webp',
+  'assets/island/etoile.webp',
+  'assets/island/mouton.webp',
+  'assets/island/narval.webp',
+  'assets/island/poulpe.webp',
+  'assets/island/tortue.webp',
+  'assets/island/tortue2.webp'
+];
 self.addEventListener('install', function(e) {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function(c) {
-    return Promise.all(CDN.map(function(u) { return c.add(u).catch(function() {}); }));
+    return Promise.all(CDN.concat(LOCAL).map(function(u) { return c.add(u).catch(function() {}); }));
   }));
 });
 self.addEventListener('activate', function(e) {
