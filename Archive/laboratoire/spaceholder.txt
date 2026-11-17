@@ -1,43 +1,7 @@
-Object { theme: "dreamos", palette: "ciel", stylesheet: (1) […] }
-​
-palette: "ciel"
-​
-stylesheet: Array [ "http://localhost:8000/themes/themes.css?v=1.0.1" ]
-​​
-0: "http://localhost:8000/themes/themes.css?v=1.0.1"
-​​
-length: 1
-​​
-<prototype>: Array []
-​
-theme: "dreamos"
-​
-<prototype>: Object { … }
-​​
-__defineGetter__: function __defineGetter__()
-​​
-__defineSetter__: function __defineSetter__()
-​​
-__lookupGetter__: function __lookupGetter__()
-​​
-__lookupSetter__: function __lookupSetter__()
-​​
-__proto__: 
-​​
-constructor: function Object()
-​​
-hasOwnProperty: function hasOwnProperty()
-​​
-isPrototypeOf: function isPrototypeOf()
-​​
-propertyIsEnumerable: function propertyIsEnumerable()
-​​
-toLocaleString: function toLocaleString()
-​​
-toString: function toString()
-​​
-valueOf: function valueOf()
-​​
-<get __proto__()>: function __proto__()
-​​
-<set __proto__()>: function __proto__()
+const storage = await window.dreamOS.services.resolve('storageManager');
+const keys = await storage.keys();
+
+({
+  keyCount: keys.length,
+  hasPatternMirror: keys.includes('meta_patterns')
+});
