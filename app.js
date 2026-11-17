@@ -471,7 +471,7 @@
 
   var S = {
     ui: Object.assign({}, defaultUi, load('carnet.ui', {})),
-    pwHash: (function() { var h = load('carnet.pwHash', ''); return (typeof h === 'string' && /^([0-9a-f]{64}|fallback_-?\d+)$/.test(h)) ? h : ''; })(),
+    pwHash: (function() { var h = load('carnet.pwHash', ''); return (typeof h === 'string' && /^(pbkdf2\$\d+\$[A-Za-z0-9+\/=]+\$[A-Za-z0-9+\/=]+|[0-9a-f]{64}|fallback_-?\d+)$/.test(h)) ? h : ''; })(),
     unlocked: false,
     group: (function(g) { return (g === 'garment' || g === 'author' || g === 'folder' || g === 'all') ? g : 'garment'; })(load('carnet.group', 'garment')),
     favAuthors: load('carnet.favAuthors', []),
@@ -712,19 +712,53 @@
   }
   applyAppearance();
 
-  /* ============ Verrouillage par Mot de Passe (SHA-256) ============ */
-  async function sha256(str) {
-    if (window.crypto && window.crypto.subtle) {
-      var buf = new TextEncoder().encode(str);
-      var hashBuf = await crypto.subtle.digest('SHA-256', buf);
-      return Array.from(new Uint8Array(hashBuf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-    }
+  /* ============ Verrou de l'application (PBKDF2 + sel) ============
+     C'est un verrou d'affichage : il masque l'application, il ne chiffre pas les données. */
+  var PW_ITER = 600000, PW_MIN = 4, PW_FAIL_KEY = 'carnet.pwFail';
+  function pwSupported() { return !!(window.crypto && crypto.subtle && crypto.getRandomValues); }
+  function b64e(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function b64d(str) { var b = atob(str), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  function sameBytes(x, y) { if (x.length !== y.length) return false; var r = 0; for (var i = 0; i < x.length; i++) r |= x[i] ^ y[i]; return r === 0; }
+  async function pbkdf2(pw, salt, iter) {
+    var key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    return new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iter }, key, 256));
+  }
+  async function hashPw(pw) {
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var d = await pbkdf2(pw, salt, PW_ITER);
+    return 'pbkdf2$' + PW_ITER + '$' + b64e(salt) + '$' + b64e(d);
+  }
+  /* Anciens formats (SHA-256 simple, hash de secours) : lus une dernière fois pour migrer */
+  async function legacySha256(str) {
+    var hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(hashBuf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  function legacyFallback(str) {
     var h = 0;
-    for (var i = 0; i < str.length; i++) {
-      h = ((h << 5) - h) + str.charCodeAt(i);
-      h |= 0;
-    }
+    for (var i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
     return 'fallback_' + h;
+  }
+  async function checkPw(pw, stored) {
+    if (typeof stored !== 'string' || !stored) return false;
+    try {
+      if (stored.indexOf('pbkdf2$') === 0) {
+        var p = stored.split('$');
+        if (p.length !== 4) return false;
+        var iter = parseInt(p[1], 10);
+        if (!(iter >= 1000 && iter <= 5000000)) return false;
+        return sameBytes(await pbkdf2(pw, b64d(p[2]), iter), b64d(p[3]));
+      }
+      if (/^[0-9a-f]{64}$/.test(stored)) return pwSupported() && (await legacySha256(pw)) === stored;
+      if (stored.indexOf('fallback_') === 0) return legacyFallback(pw) === stored;
+    } catch (e) {}
+    return false;
+  }
+  function pwFailGet() {
+    try { var o = JSON.parse(localStorage.getItem(PW_FAIL_KEY) || '{}'); return { n: o.n | 0, until: +o.until || 0 }; }
+    catch (e) { return { n: 0, until: 0 }; }
+  }
+  function pwFailSet(o) {
+    try { if (o) localStorage.setItem(PW_FAIL_KEY, JSON.stringify(o)); else localStorage.removeItem(PW_FAIL_KEY); } catch (e) {}
   }
 
   function syncLockScreen() {
@@ -743,21 +777,39 @@
     }
   }
 
+  var unlockBusy = false;
   async function tryUnlock() {
+    if (unlockBusy) return;
     var inp = $('#unlockInput');
     var err = $('#unlockErr');
-    var val = inp ? inp.value : '';
+    var val = inp ? inp.value.trim() : '';
     if (!val) return;
-    var h = await sha256(val.trim());
-    if (h === S.pwHash) {
-      S.unlocked = true;
-      if (inp) inp.value = '';
-      if (err) err.style.display = 'none';
-      syncLockScreen();
-      render();
-    } else {
-      if (err) err.style.display = 'block';
+    function showErr(msg) { if (err) { err.textContent = msg; err.style.display = 'block'; } }
+    var st = pwFailGet(), wait = Math.ceil((st.until - Date.now()) / 1000);
+    if (wait > 0) { showErr('Trop d\'essais. Réessayez dans ' + wait + ' s.'); return; }
+    var stored = S.pwHash || '';
+    if (stored.indexOf('pbkdf2$') === 0 && !pwSupported()) {
+      showErr('Ce navigateur ne peut pas vérifier le mot de passe (une connexion HTTPS est nécessaire).');
+      return;
     }
+    unlockBusy = true;
+    try {
+      if (await checkPw(val, stored)) {
+        pwFailSet(null);
+        if (stored.indexOf('pbkdf2$') !== 0 && pwSupported()) {
+          try { S.pwHash = await hashPw(val); keep('carnet.pwHash', S.pwHash); } catch (e) {}
+        }
+        S.unlocked = true;
+        if (inp) inp.value = '';
+        if (err) err.style.display = 'none';
+        syncLockScreen();
+        render();
+      } else {
+        var n = st.n + 1, delay = n >= 3 ? Math.min(300, 2 * Math.pow(2, n - 3)) : 0;
+        pwFailSet({ n: n, until: delay ? Date.now() + delay * 1000 : 0 });
+        showErr(delay ? 'Mot de passe incorrect. Réessayez dans ' + delay + ' s.' : 'Mot de passe incorrect.');
+      }
+    } finally { unlockBusy = false; }
   }
 
   $('#unlockBtn').addEventListener('click', tryUnlock);
@@ -4797,13 +4849,13 @@
       '</div></details>' +
 
       /* 2. Protection par mot de passe */
-      '<details class="sec"><summary><h3>Protection par mot de passe</h3>' + (S.pwHash ? '<span class="chip ok">Actif</span>' : '<span class="chip mute">Désactivé</span>') + '</summary><div class="body">' +
-      '<p class="sub">Verrouille l\'accès à l\'application sur cet appareil avec votre mot de passe personnel.</p>' +
+      '<details class="sec"><summary><h3>Verrou de l\'application</h3>' + (S.pwHash ? '<span class="chip ok">Actif</span>' : '<span class="chip mute">Désactivé</span>') + '</summary><div class="body">' +
+      '<p class="sub">Masque l\'application derrière un mot de passe sur cet appareil, par exemple si quelqu\'un utilise votre téléphone. Ce n\'est pas un chiffrement : les données restent stockées dans le navigateur. Pour les protéger vraiment, utilisez aussi le verrouillage de votre appareil.</p>' +
       '<div class="row">' +
       '<input class="in grow" type="password" id="newPwIn" placeholder="' + (S.pwHash ? 'Nouveau mot de passe…' : 'Choisir un mot de passe…') + '">' +
       '<button class="btn primary small" data-act="setPw">' + (S.pwHash ? 'Modifier' : 'Activer') + '</button>' +
       '</div>' +
-      (S.pwHash ? '<div class="row"><button class="btn small" data-act="lockNow">Verrouiller maintenant</button><button class="btn small danger" data-act="removePw">Désactiver le mot de passe</button></div>' : '') +
+      (S.pwHash ? '<div class="row"><button class="btn small" data-act="lockNow">Verrouiller maintenant</button><button class="btn small danger" data-act="removePw">Désactiver le verrou</button></div>' : '') +
       '</div></details>' +
 
       /* 3. Gestionnaire Multi-IA */
@@ -6175,14 +6227,17 @@
     else if (a === 'setPw') {
       var pw = ($('#newPwIn').value || '').trim();
       if (!pw) { toast('Saisissez un mot de passe.'); return; }
-      S.pwHash = await sha256(pw);
+      if (pw.length < PW_MIN) { toast('Le mot de passe doit faire au moins ' + PW_MIN + ' caractères.'); return; }
+      if (!pwSupported()) { toast('Le verrou nécessite une connexion HTTPS : ce navigateur ne le permet pas ici.'); return; }
+      S.pwHash = await hashPw(pw);
       keep('carnet.pwHash', S.pwHash);
+      pwFailSet(null);
       S.unlocked = true;
       render();
       toast('Mot de passe enregistré !');
     }
     else if (a === 'removePw') {
-      S.pwHash = ''; keep('carnet.pwHash', ''); S.unlocked = true; render(); toast('Mot de passe désactivé.');
+      S.pwHash = ''; keep('carnet.pwHash', ''); pwFailSet(null); S.unlocked = true; render(); toast('Verrou désactivé.');
     }
     else if (a === 'lockNow') {
       S.unlocked = false; syncLockScreen();
