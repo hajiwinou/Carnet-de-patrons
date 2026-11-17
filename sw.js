@@ -1,5 +1,5 @@
 /* Service worker : permet d'ouvrir l'atelier sans connexion */
-var CACHE = 'atelier-tricot-v2';
+var CACHE = 'atelier-tricot-v3';
 var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
@@ -13,8 +13,7 @@ var LOCAL = [
   'styles-late.css',
   'app.js',
   'app-late.js',
-  'themes/themes.css?v=1.0.0',
-  'assets/bliss.jpg',
+  'themes/themes.css?v=1.0.1',
   'assets/icons/bookmark.png',
   'assets/icons/calculator.png',
   'assets/icons/camera.png',

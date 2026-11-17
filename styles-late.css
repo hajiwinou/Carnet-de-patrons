@@ -98,36 +98,7 @@
   box-shadow:3px 3px 0 #6842a6;
 }
 
-/* Bliss 95 — ciel lumineux, verre doux et prairie pastel. */
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] body {
-  background-image:
-    radial-gradient(ellipse at 16% 14%,rgba(255,255,255,.98) 0 4%,transparent 17%),
-    radial-gradient(ellipse at 78% 24%,rgba(255,255,255,.9) 0 5%,transparent 18%),
-    linear-gradient(180deg,#9ed7ff 0%,#d7efff 56%,#b9dca4 57%,#6ca66b 100%);
-  background-attachment:fixed;
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .top,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .section-head {
-  background:linear-gradient(180deg,#8bd4f4,#4a9ed4);
-  color:#173d62;
-  border:2px solid #fff;
-  box-shadow:3px 3px 0 #477da8;
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .panel,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .card,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .modal-box {
-  background:rgba(255,255,248,.92);
-  border:2px solid #fff;
-  border-radius:12px;
-  box-shadow:3px 4px 0 rgba(49,100,143,.28);
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .btn.primary,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .tabbar .active {
-  background:linear-gradient(180deg,#8cdbfa,#4c9edb);
-  color:#153c61;
-  border:2px solid #fff;
-  box-shadow:2px 3px 0 #477da8;
-}
+
 
 /* Dossiers : silhouette proche des icônes fournies, avec onglet visible. */
 :root[data-theme="dreamos"] .library-group.is-folder .gh {

@@ -1941,39 +1941,6 @@ button, a, [data-act], label, select, summary { touch-action: manipulation; }
   box-shadow:3px 3px 0 #24102f;
 }
 
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] body {
-  background-color:#80bdf4;
-  background-image:
-    radial-gradient(ellipse at 12% 18%, rgba(255,255,255,.96) 0 5%, transparent 17%),
-    radial-gradient(ellipse at 24% 15%, rgba(255,255,255,.88) 0 4%, transparent 14%),
-    radial-gradient(ellipse at 76% 27%, rgba(255,255,255,.92) 0 5%, transparent 16%),
-    radial-gradient(ellipse at 88% 23%, rgba(255,255,255,.82) 0 4%, transparent 13%),
-    linear-gradient(180deg,#7fc5fa 0%,#b8e1ff 57%,#6ab46d 58%,#397b45 100%);
-  background-size:100% 100%;
-  background-attachment:fixed;
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .top {
-  background:linear-gradient(180deg,#3988e9 0%,#1556b8 48%,#0b3b8d 100%);
-  color:#fff;
-  border:2px solid #dff3ff;
-  border-right-color:#0b367a;
-  border-bottom-color:#0b367a;
-  box-shadow:3px 3px 0 rgba(13,43,92,.55);
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .panel,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .card,
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .modal-box {
-  border:2px solid #fff;
-  border-right-color:#7a9bc0;
-  border-bottom-color:#7a9bc0;
-  box-shadow:3px 3px 0 rgba(16,57,111,.28);
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] .btn.primary {
-  background:linear-gradient(180deg,#64b6ff,#1556b8);
-  color:#fff;
-  border:2px solid #fff;
-  box-shadow:2px 2px 0 #17447d;
-}
 
 :root[data-theme="dreamos"][data-dream-palette="pixeldream"] body {
   background-color:#bba4ff;
@@ -2233,18 +2200,7 @@ html { scroll-behavior: smooth; }
   .vrc-menu button { font-size: 17px; padding: 13px 14px; }
 }
 
-/* ===== Bliss 95 : vrai fond d'écran Bliss ===== */
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] { --bliss-img: url("assets/bliss.jpg"); }
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] body.no-wallpaper {
-  background-color: #3b82e0;
-  background-image: var(--bliss-img);
-  background-size: cover;
-  background-position: center bottom;
-  background-attachment: fixed;
-}
-:root[data-theme="dreamos"][data-dream-palette="bliss95"] #viewer {
-  background: #3b82e0 var(--bliss-img) center bottom / cover no-repeat;
-}
+
 
 /* ===== Confort sur grand écran (PC) ===== */
 @media (min-width: 1000px) {
