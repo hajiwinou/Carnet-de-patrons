@@ -1,0 +1,2 @@
+1. pouvoir supprimer des projets en attente
+2. Pouvoir choisir la photo de couverture d’un projet en attente, d’un wip, d’un projet terminé via les photos qu’on a ajouté (que ce soit dans inspiration ou autre), si il y a un pdf, la photo de couverture qu’on a choisie ne change pas mais on peut la substituer avec la photo du pdf si on veut ou pas et choisir laquelle des photos qu’on a ajouté va servir de photo de couverture, si on ne met pas de photo c’est la photo du pdf qui se met en couverture automatiquement
