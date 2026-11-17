@@ -3519,12 +3519,42 @@
     var end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,entries.length,true);ev.setUint16(10,entries.length,true);ev.setUint32(12,centralSize,true);ev.setUint32(16,offset,true);
     return new Blob(parts.concat(central,[end]),{type:'application/zip'});
   }
+  var BACKUP_PART_BYTES = 200 * 1048576; /* taille max d'une partie du ZIP (200 Mo) */
+  var BACKUP_LABELS = {pdf_:'PDF',img_:'photos',th_:'miniatures',docm_:'médias doc',pjc_:'photos projets',pjp_:'photos projets',wall_:'fonds',idea_:'idées',inspo_:'inspiration'};
+  function bkSize(n) {return n>=1073741824 ? (n/1073741824).toFixed(1).replace('.',',')+' Go' : Math.max(1,Math.round(n/1048576))+' Mo';}
+  function bkPad(n) {return (n<10?'0':'')+n;}
   function backupPanel(text,ready) {
-    var el=document.getElementById('backupPanel');
+    var el=document.getElementById('backupPanel'),A=backupArtifact;
     if(!el) {el=document.createElement('div');el.id='backupPanel';el.className='backup-panel';document.body.appendChild(el);}
-    el.innerHTML='<div class="card stack"><h2>Sauvegarde ZIP complète</h2><p id="backupProgress" role="status">'+esc(text)+'</p>'+(ready?'<button class="btn primary" data-act="backupDownload">Télécharger le ZIP</button><button class="btn" data-act="backupShare">Partager / Enregistrer dans Fichiers</button><p class="sub">La préparation est terminée. Touchez un bouton puis vérifiez que le fichier est bien enregistré. Aucun enregistrement automatique sur votre appareil ne peut être garanti.</p><button class="btn small" data-act="backupClose">Fermer</button>':'')+'</div>';
+    var multi=!!(A && A.parts && A.parts.length>1),last=!multi || A.idx>=A.parts.length-1,tag=multi?' (partie '+(A.idx+1)+'/'+A.parts.length+')':'',btns='';
+    if(ready) {
+      btns='<button class="btn primary" data-act="backupDownload">Télécharger le ZIP'+tag+'</button><button class="btn" data-act="backupShare">Partager / Enregistrer dans Fichiers'+tag+'</button>';
+      if(multi && !last) btns+='<button class="btn" data-act="backupNext">Préparer la partie suivante ('+(A.idx+2)+'/'+A.parts.length+')</button>';
+      btns+='<p class="sub">'+(multi ? 'La sauvegarde est découpée en '+A.parts.length+' fichiers : enregistrez chaque partie, puis préparez la suivante. Pour restaurer, sélectionnez toutes les parties ensemble (ou une par une, en commençant par la partie 1).' : 'La préparation est terminée. Touchez un bouton puis vérifiez que le fichier est bien enregistré. Aucun enregistrement automatique sur votre appareil ne peut être garanti.')+'</p><button class="btn small" data-act="backupClose">Fermer</button>';
+    }
+    el.innerHTML='<div class="card stack"><h2>Sauvegarde ZIP complète</h2><p id="backupProgress" role="status">'+esc(text)+'</p>'+btns+'</div>';
   }
   function backupProgress(text) {var el=document.getElementById('backupProgress');if(el)el.textContent=text;}
+  async function backupBuildPart(i) {
+    var A=backupArtifact,P=A.parts[i],types={},multi=A.parts.length>1,list=(i===0?[A.dataEntry]:[]);
+    P.items.forEach(function(it) {types[it.key]=it.blob.type||'';list.push({name:it.name,blob:it.blob});});
+    list.push({name:'types.json',blob:new Blob([JSON.stringify(types)],{type:'application/json'})});
+    A.blob=null; /* libère la partie précédente */
+    var out=await buildStoredZip(list,function(k,n){backupProgress('Création '+(multi?'de la partie '+(i+1)+'/'+A.parts.length:'du ZIP')+' : '+Math.round(k/n*100)+' %');});
+    A.idx=i;A.blob=out;
+    A.name='carnet-sauvegarde-'+A.stamp+(multi?'-partie-'+bkPad(i+1)+'-sur-'+bkPad(A.parts.length):'')+'.zip';
+    var msg='ZIP prêt : '+bkSize(out.size)+(multi?' (partie '+(i+1)+' sur '+A.parts.length+')':'')+'.';
+    if(i===0) msg+=' Total des fichiers : '+bkSize(A.totalBytes)+(A.detail?' — '+A.detail:'')+'.';
+    backupPanel(msg+' Choisissez où le conserver.',true);
+  }
+  async function backupNext() {
+    var A=backupArtifact;
+    if(!A || backupRunning || A.idx>=A.parts.length-1)return;
+    backupRunning=true;
+    try {await backupBuildPart(A.idx+1);}
+    catch(e) {backupPanel('Échec : '+(e.message||'erreur inconnue')+'.',false);document.getElementById('backupPanel').querySelector('.card').insertAdjacentHTML('beforeend','<button class="btn" data-act="backupClose">Fermer</button>');console.error(e);}
+    finally {backupRunning=false;}
+  }
   async function fullBackup() {
     if(backupRunning) {toast('Une sauvegarde est déjà en préparation.');return;}
     if(S.importRunning) {toast('Attendez la fin de l’import avant la sauvegarde complète.');return;}
@@ -3544,40 +3574,56 @@
       }
       refs(data,'');
       required.forEach(function(k){if(!keys.includes(k))throw new Error('Fichier référencé manquant : '+k);});
-      var entries=[{name:'data.json',blob:new Blob([JSON.stringify(data)],{type:'application/json'})}],types={};
+      var items=[],sizes={},total=0;
       for(var i=0;i<keys.length;i++) {
         backupProgress('Lecture des fichiers : '+(i+1)+' / '+keys.length);
         var bl=blobs.get(keys[i]) || await IDB.get(keys[i]);
         if(!bl) {if(required.has(keys[i]))throw new Error('Fichier illisible : '+keys[i]);continue;}
         if(!(bl instanceof Blob))throw new Error('Contenu non reconnu : '+keys[i]);
-        types[keys[i]]=bl.type||'';entries.push({name:'blobs/'+keys[i],blob:bl});
+        items.push({name:'blobs/'+keys[i],blob:bl,key:keys[i]});
+        var pf=(String(keys[i]).match(/^[a-z]+_/)||['autre'])[0];
+        if(!sizes[pf])sizes[pf]=[0,0];
+        sizes[pf][0]+=bl.size;sizes[pf][1]++;total+=bl.size;
       }
-      entries.push({name:'types.json',blob:new Blob([JSON.stringify(types)],{type:'application/json'})});
-      var out=await buildStoredZip(entries,function(i,n){backupProgress('Création du ZIP : '+Math.round(i/n*100)+' % ('+i+' / '+n+')');});
+      /* découpe en parties de 200 Mo maximum (un fichier plus gros reste seul dans sa partie) */
+      var parts=[],curP={items:[],size:0};
+      items.forEach(function(it) {
+        if(curP.items.length && curP.size+it.blob.size>BACKUP_PART_BYTES) {parts.push(curP);curP={items:[],size:0};}
+        curP.items.push(it);curP.size+=it.blob.size;
+      });
+      parts.push(curP);
+      var detail=Object.keys(sizes).sort(function(a,b){return sizes[b][0]-sizes[a][0];}).slice(0,4).map(function(k){return (BACKUP_LABELS[k]||k)+' '+bkSize(sizes[k][0])+' ('+sizes[k][1]+')';}).join(' · ');
       var stamp=new Date().toISOString().replace(/[:.]/g,'-');
-      backupArtifact={blob:out,name:'carnet-sauvegarde-'+stamp+'.zip'};
-      backupPanel('ZIP prêt : '+(out.size/1048576).toFixed(1)+' Mo. Choisissez où le conserver.',true);
+      backupArtifact={parts:parts,idx:0,stamp:stamp,dataEntry:{name:'data.json',blob:new Blob([JSON.stringify(data)],{type:'application/json'})},blob:null,name:'',totalBytes:total,detail:detail,done:{}};
+      await backupBuildPart(0);
     } catch(e) {
+      backupArtifact=null;
       backupPanel('Échec : '+(e.message||'erreur inconnue')+'. Aucun ZIP complet n’a été annoncé comme enregistré.',false);
       document.getElementById('backupPanel').querySelector('.card').insertAdjacentHTML('beforeend','<button class="btn" data-act="backupClose">Fermer</button>');
       console.error(e);
     } finally {backupRunning=false;}
   }
+  function backupMarkDone() {
+    var A=backupArtifact;if(!A)return;
+    A.done[A.idx]=true;
+    if(Object.keys(A.done).length>=A.parts.length)keep('carnet.lastBackup',Date.now());
+  }
   function backupDownload() {
-    if(!backupArtifact)return;
-    if(downloadBlob(backupArtifact.name,backupArtifact.blob)) {keep('carnet.lastBackup',Date.now());backupProgress('Téléchargement demandé. Vérifiez le fichier dans vos téléchargements ou Fichiers.');}
+    var A=backupArtifact;
+    if(!A||!A.blob)return;
+    if(downloadBlob(A.name,A.blob)) {backupMarkDone();backupProgress('Téléchargement demandé. Vérifiez le fichier dans vos téléchargements ou Fichiers.');}
   }
   async function backupShare() {
-    if(!backupArtifact)return;
+    var A=backupArtifact;
+    if(!A||!A.blob)return;
     try {
-      var f=new File([backupArtifact.blob],backupArtifact.name,{type:'application/zip'});
+      var f=new File([A.blob],A.name,{type:'application/zip'});
       if(navigator.share && navigator.canShare && navigator.canShare({files:[f]})) {
-        await navigator.share({files:[f],title:'Sauvegarde du carnet'});keep('carnet.lastBackup',Date.now());backupProgress('Partage terminé. Vérifiez que le fichier est conservé dans Fichiers.');
+        await navigator.share({files:[f],title:'Sauvegarde du carnet'});backupMarkDone();backupProgress('Partage terminé. Vérifiez que le fichier est conservé dans Fichiers.');
       } else backupDownload();
     } catch(e) {if(e.name!=='AbortError')backupProgress('Partage impossible : '+e.message+'. Essayez « Télécharger le ZIP ».');}
   }
-  async function restoreFull(zipObj) {
-    var data = JSON.parse(await zipObj.file('data.json').async('string'));
+  async function restoreBlobsFrom(zipObj) {
     var types = {};
     if (zipObj.file('types.json')) types = JSON.parse(await zipObj.file('types.json').async('string'));
     var names = [];
@@ -3587,6 +3633,11 @@
       var ty = types[names[i]] || (names[i].indexOf('pdf_') === 0 ? 'application/pdf' : 'image/jpeg');
       await saveBlob(names[i], new Blob([raw], { type: ty }));
     }
+    return names.length;
+  }
+  async function restoreFull(zipObj) {
+    var data = JSON.parse(await zipObj.file('data.json').async('string'));
+    await restoreBlobsFrom(zipObj);
     S.patterns = mergeById(S.patterns, data.patterns);
     S.folders = mergeById(S.folders, data.folders);
     S.projects = mergeById(S.projects, data.projects);
@@ -3605,7 +3656,35 @@
     saveFolders(); saveDocs(); saveIdeas(); persist();
     thumbTried = {};
   }
-  async function restoreBackup(file) {
+  async function restoreParts(list) {
+    S.busy = 'Restauration en cours…';
+    render();
+    try {
+      await needZip();
+      list = list.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+      var full = false, nb = 0;
+      for (var i = 0; i < list.length; i++) {
+        S.busy = 'Restauration : partie ' + (i + 1) + ' / ' + list.length + '…';
+        render();
+        var z = await JSZip.loadAsync(list[i]);
+        if (z.file('data.json')) { await restoreFull(z); full = true; }
+        else nb += await restoreBlobsFrom(z);
+        z = null;
+      }
+      thumbTried = {};
+      S.busy = '';
+      render();
+      toast(full ? 'Sauvegarde complète restaurée : patrons, PDF et photos.' : nb + ' fichier(s) restauré(s). Restaurez aussi la partie 1, qui contient les patrons.');
+    } catch (e) {
+      S.busy = '';
+      render();
+      toast('Fichier invalide.');
+      console.error(e);
+    }
+  }
+  async function restoreBackup(arg) {
+    var list = Array.isArray(arg) ? arg : [arg], file = list[0];
+    if (list.length > 1 || /-partie-\d+-sur-\d+/i.test(file.name || '')) { return restoreParts(list); }
     S.busy = 'Restauration en cours…';
     render();
     try {
@@ -4885,7 +4964,7 @@
       '</div>' +
       '<div style="border-top:1px solid var(--line);padding-top:10px">' +
       '<label class="btn small" for="restoreIn">Restaurer depuis une archive (.zip / .jsonl)</label>' +
-      '<input id="restoreIn" type="file" accept=".zip,.jsonl,application/zip,application/json">' +
+      '<input id="restoreIn" type="file" multiple accept=".zip,.jsonl,application/zip,application/json">' +
       '</div>' +
       '</div></details>' +
 
@@ -5067,7 +5146,7 @@
   function listHtml() {
     var ps = filteredPatterns();
     if (!S.patterns.length) {
-      return '<div class="empty"><h2>Aucun patron pour l\'instant</h2><p>Importez vos patrons PDF ou collez un texte pour construire votre bibliothèque et entraîner votre futur générateur.</p><div class="row" style="justify-content:center"><button class="btn primary" data-act="tab" data-v="add">+ Importer un patron</button><label class="btn" for="restoreIn2">Restaurer une sauvegarde</label><input id="restoreIn2" type="file" accept=".zip,.jsonl,application/zip,application/json"></div></div>';
+      return '<div class="empty"><h2>Aucun patron pour l\'instant</h2><p>Importez vos patrons PDF ou collez un texte pour construire votre bibliothèque et entraîner votre futur générateur.</p><div class="row" style="justify-content:center"><button class="btn primary" data-act="tab" data-v="add">+ Importer un patron</button><label class="btn" for="restoreIn2">Restaurer une sauvegarde</label><input id="restoreIn2" type="file" multiple accept=".zip,.jsonl,application/zip,application/json"></div></div>';
     }
     if (!ps.length) {
       return '<div class="empty"><p>Aucun patron ne correspond à vos filtres.</p><button class="btn small" data-act="resetFilters">Réinitialiser</button></div>';
@@ -5805,7 +5884,7 @@
       return;
     }
     if ((t.id === 'restoreIn' || t.id === 'restoreIn2') && t.files && t.files.length) {
-      var rf = t.files[0]; t.value = ''; restoreBackup(rf); return;
+      var rfs = Array.from(t.files); t.value = ''; restoreBackup(rfs.length > 1 ? rfs : rfs[0]); return;
     }
     if (t.dataset.kind && t.files && t.files.length) {
       var p = cur(), fs2 = Array.from(t.files), k = t.dataset.kind; t.value = ''; if (p) addPhotos(p, fs2, k); return;
@@ -5896,6 +5975,7 @@
 
     if(a==='backupDownload'){backupDownload();return;}
     if(a==='backupShare'){backupShare();return;}
+    if(a==='backupNext'){backupNext();return;}
     if(a==='backupClose'){if(!backupRunning){var bp=document.getElementById('backupPanel');if(bp)bp.remove();backupArtifact=null;}return;}
     if(a==='pdfToolsOpen'){openPdfTools();return;}
     if(a==='pdfToolsReturn'){returnToPdf();return;}
