@@ -1,5 +1,4 @@
-/* Catalogue des thèmes externes — v1.1.0.
-   Bliss reste installé ; Cyberpop 98 est ajouté.
-   Conserver les éventuels autres imports déjà présents. */
-@import url("./bliss.css?v=1.0.0");
-@import url("./cyberpop98.css?v=1.0.0");
+/* Catalogue des thèmes externes — version 1.0.1.
+   Ajouter les futurs imports ici : index.html gardera le même lien.
+   Chaque feuille doit rester limitée à son propre thème. */
+@import url("./bliss.css?v=1.0.1");

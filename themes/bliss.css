@@ -485,3 +485,14 @@ html:root[data-theme="dreamos"][data-dream-palette="bliss95"]:not([data-dream-pa
   content:url("./bliss/icons/favori.svg");
   filter:none!important;
 }
+
+/* --- Reprise des deux éléments que les anciennes règles Bliss habillaient --- */
+html:root[data-theme="dreamos"][data-dream-palette="bliss95"]:not([data-dream-palette="custom"]) .top {
+  background:var(--bliss-title)!important;
+  color:#fff7e7!important;
+  border-color:#79a2d5 #214987 #214987 #79a2d5!important;
+  box-shadow:0 0 0 1px #305388,3px 4px 0 #183b672b!important;
+}
+html:root[data-theme="dreamos"][data-dream-palette="bliss95"]:not([data-dream-palette="custom"]) #viewer {
+  background:#8fb9dc var(--bliss-wallpaper) center bottom / cover no-repeat!important;
+}
