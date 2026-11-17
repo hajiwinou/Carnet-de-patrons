@@ -1,2 +1,11 @@
 $currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
 [Environment]::SetEnvironmentVariable('PATH', "$currentPath;$env:USERPROFILE\.local\bin", 'User')
+
+
+
+
+# Télécharger l'installateur directement dans D:\claude
+Invoke-WebRequest -Uri "https://ollama.com/download/OllamaSetup.exe" -OutFile "D:\claude\OllamaSetup.exe"
+
+# Lancer l'installation sur le disque D
+D:\claude\OllamaSetup.exe /DIR="D:\Ollama"
