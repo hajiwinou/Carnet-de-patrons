@@ -1,1 +1,5 @@
-
+({
+  theme: document.documentElement.getAttribute('data-theme'),
+  palette: document.documentElement.getAttribute('data-dream-palette'),
+  stylesheet: [...document.styleSheets].map(s => s.href).filter(Boolean).filter(x => x.includes('theme'))
+})
