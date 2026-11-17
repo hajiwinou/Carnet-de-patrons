@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Atelier Tricot</title>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"></noscript>
+<link rel="stylesheet" href="styles.css">
+  <link id="atelier-themes" rel="stylesheet" href="./themes/themes.css?v=1.0.0">
+</head>
+<body class="no-wallpaper">
+
+<!-- Écran de verrouillage -->
+<div id="lockScreen" hidden>
+  <div class="lock-box">
+    <div style="font-size:32px">🧶</div>
+    <h2>Atelier Tricot Verrouillé</h2>
+    <p class="sub">Entrez votre mot de passe pour accéder à vos patrons, idées et outils.</p>
+    <input class="in" type="password" id="unlockInput" placeholder="Mot de passe…" autocomplete="current-password">
+    <button class="btn primary" id="unlockBtn">Déverrouiller</button>
+    <p id="unlockErr" class="sub" style="color:var(--bad);display:none">Mot de passe incorrect.</p>
+  </div>
+</div>
+
+<div class="wrap" id="app"><div id="view"></div></div>
+<div id="tabs" aria-label="Navigation principale"></div>
+<div id="toast" role="status"></div>
+<div id="dupe" hidden></div>
+<div id="dlg" hidden></div>
+<div id="lightbox" hidden role="dialog" aria-label="Photo en plein écran"><img alt="Photo" draggable="false"><button type="button" class="lb-x" data-act="lbClose" aria-label="Fermer">✕</button><button type="button" class="lb-nav lb-prev" data-act="lbPrev" aria-label="Photo précédente">‹</button><button type="button" class="lb-nav lb-next" data-act="lbNext" aria-label="Photo suivante">›</button><div class="lb-count" aria-live="polite"></div></div>
+
+<!-- Visionneuse PDF plein écran -->
+<div id="viewer" hidden>
+  <div class="vhead">
+    <button class="icon-btn" data-act="vclose" aria-label="Fermer">&#10005;</button>
+    <span class="vtitle" id="vtitle"></span>
+    <span class="sub num" id="vpage"></span>
+    <button class="btn small" data-act="pdfToolsOpen">Mes outils</button>
+    <button class="icon-btn vtl" id="vmark" data-act="vmark" aria-label="Poser un repère de rang" title="Repère du rang">📍</button>
+    <button class="icon-btn vtl" id="vhl" data-act="vhl" aria-label="Surligner une ligne" title="Surligner">🖍️</button>
+    <button class="icon-btn vtl" id="vsm" data-act="vsm" aria-label="Ajouter un marqueur de rang (stitch marker)" title="Marqueur de rang">⭕</button>
+    <button class="icon-btn vzb" data-act="vzoomout" aria-label="Réduire">&#8722;</button>
+    <button class="icon-btn vzb" data-act="vzoomin" aria-label="Agrandir">+</button>
+  </div>
+  <div class="vscroll" id="vscroll"></div>
+  <div id="vrc" hidden role="group" aria-label="Compteur de rangs">
+    <div class="vrc-menu" id="vrcMenu" hidden>
+      <span class="vrc-pj" id="vrcPj"></span>
+      <button type="button" data-r="10">+10 rangs</button>
+      <button type="button" data-r="-10">−10 rangs</button>
+      <button type="button" data-r="x" id="vrcXb">+5 rangs</button>
+      <button type="button" data-r="step">Choisir x…</button>
+      <button type="button" data-r="goal">Objectif de rangs…</button>
+      <button type="button" data-r="note">Note au journal…</button>
+      <button type="button" data-r="goalDrop" id="vrcGoalDrop" hidden>Abandonner l’objectif</button>
+      <button type="button" data-r="total">Rangs au total…</button>
+      <button type="button" data-r="reset" id="vrcReset">Remettre à 0</button>
+      <button type="button" data-r="min">Réduire le compteur</button>
+    </div>
+    <div class="vrc-st" id="vrcSt" hidden></div>
+    <div class="vrc-bar">
+      <button type="button" class="vrc-b" data-r="-1" aria-label="Moins un rang">−</button>
+      <button type="button" class="vrc-n" id="vrcN" aria-label="Rang actuel. Toucher pour les options, glisser pour déplacer."><small>rang</small><b id="vrcV">0</b></button>
+      <button type="button" class="vrc-b vrc-p" data-r="1" aria-label="Plus un rang">+1</button>
+    </div>
+    <div class="vrc-sub" id="vrcSub" hidden></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<link rel="stylesheet" href="styles-late.css">
+
+<script src="app-late.js"></script>
+</body>
+</html>
