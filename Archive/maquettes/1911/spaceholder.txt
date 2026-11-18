@@ -1,1 +1,15 @@
 
+Les maquettes déjà faites : as-tu le fichier source (Figma ou autre), ou seulement le PDF ? Je peux relever couleurs, polices et contours depuis le PDF, mais ce sera approximatif. Si tu as les valeurs exactes (le rose, le vert, le bleu, la police pixel des titres, DM Sans pour le texte), donne-les-moi.
+Deux décisions de vocabulaire à trancher avant de dessiner les écrans manquants :
+Un seul jeu de statuts, ou deux jeux (patrons : À faire / En cours / Terminé ; projets : En attente / WIP / Terminé) ?
+Quel compteur pilote le pourcentage de progression d’un projet ?
+La navigation sur téléphone : les 6 actions de la barre du haut ne tiendront pas. Je te propose une barre en bas avec Bibliothèque, Projets, Idées, Outils et « Plus » (Documentation, Paramètres, Favoris). Ça te va ?
+L’ordre des écrans manquants : je suggère l’analyse IA d’un patron, puis le carnet souvenir, puis les 7 outils. Est-ce que ça correspond à tes priorités ?
+Les trois autres thèmes (Doodle, Classique 95, Pixel RPG) : je dessine tout en Bliss uniquement, en gardant les couleurs et contours en variables pour pouvoir changer de thème ensuite ?
+
+réponses:
+1) non je n'ai pas le fichier source, mais c'est toi meme qui me les avaient créés dans une session précédente (malheureusement j'ai effacé ta mémoire sans faire expres donc ca s'est enlevé)
+2) pour le statut c'est seulement projets: en attente/wip/terminé
+3) oui je veux bien qu'on essaye comme ça
+4) en fait le carnet souvenir c'est la meme chose qu'un projet terminé donc on l'a déjà fais , pour l'analyse ia c'est encore un mode beta donc je sais pas trop, mais on peut continuer par les outils
+5) oui stp <3
