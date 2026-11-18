@@ -1,1 +1,7 @@
-
+A ajouter dans la documentation:
+travaillons sur la version pc d'abord 
+1) je ne veux pas qu'il y ait de bouton démarrer avec tous les trucs dedans là (donc pas de launcher à preparer)
+2) je veux qu'il y ait une intégration des outils et de la recherche (à travers toute l'appli) et du bouton reglage dans la barre où il y a ecrit dreamOS, je ne veux pas la date dans la barre dreamOS non plus
+3) je trouve que la structure du lecteur pdf que j'avais fais est trop bien faite et je veux la garder
+4) j'aime bien à quoi ressemble la fenetre réglage
+5) qd on arrive sur l'appli je veux qu'on voit tous mes dossiers de patterns (ex: pull, écharpe, jupe)
