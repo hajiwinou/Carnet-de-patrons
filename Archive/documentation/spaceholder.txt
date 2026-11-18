@@ -1,1 +1,203 @@
+J’ai modifié ma maquette sur magicpath 😎 tu peux te servir des fichiers suivants pour continuer ici stp:
+Audit fiche wip 2
+A. La vue d’ensemble : comment la rendre compacte ?
 
+Je te propose une fiche avec un bandeau supérieur contenant :
+
+La photo de couverture.
+Le nom du WIP.
+Son statut.
+Une petite barre de progression.
+Un accès rapide au patron.
+
+Puis, juste dessous, des informations regroupées en petites cartes.
+
+Est-ce que cette organisation te plaît ? Oui
+
+Pour les onglets, je verrais cette organisation :
+
+Vue d’ensemble
+Patrons et documents
+Suivi et compteurs
+Matériel
+
+Journal
+Galerie
+Souvenirs et entretien (pour les projets terminés)
+
+Tu préfères cette organisation ou certains onglets devraient-ils être regroupés ?
+Je veux regrouper vue d’ensemble, patrons et documents, suivi et compteur, materiel ensemble et journal, galerie,souvenir et entretien ensemble pour les projets terminés
+Pour gagner de la place, aimerais-tu que certaines cartes de la vue d’ensemble soient repliables ? Par exemple, le matériel ou les dernières entrées du journal. Oui stp
+
+B. Patron lié et éditeur de patrons
+
+Lorsque tu cliques sur la photo de couverture, tu souhaites ouvrir le patron associé. Mais si le WIP contient plusieurs patrons, lequel doit s’ouvrir ? Demander à l’utilisateur
+
+Je te propose d’ouvrir la liste des patrons associés pour choisir. oui
+
+Pour l’éditeur de texte de tes patrons personnels, j’imagine un véritable petit traitement de texte avec :
+
+Titres et sous-titres.
+Texte en gras et italique.
+Listes et étapes.
+Tableaux pour les tailles et les mesures.
+Images intégrées.
+Sauvegarde automatique.
+Plusieurs sections dans un même patron.
+
+Est-ce que tu veux aussi pouvoir exporter ton patron en PDF ? Oui stp
+
+Souhaites-tu que les documents texte soient intégrés à la liste des documents du WIP, au même niveau que les PDF ? Oui stp et demander si on veut modifier avant de pouvoir ecrire dedans
+
+C. Les compteurs
+
+Quand un objectif est atteint, veux-tu :
+
+Une entrée automatique dans le journal seulement
+
+Pour les compteurs archivés, souhaites-tu pouvoir les réactiver et retrouver leur ancienne valeur ? Oui
+Quand tu masques un compteur, veux-tu qu’il reste simplement invisible dans le panneau, sans perdre sa valeur ni son objectif ? Oui
+
+D. Le journal
+
+Pour les notes vocales, tu préfères pouvoir les écouter directement dans le journal, avec une petite barre audio, ou simplement voir un bouton de lecture ? Un petit bouton de lecture
+Quelles actions doivent créer automatiquement une entrée dans le journal ? Je pense notamment à :
+
+Objectif d’un compteur atteint. Non
+Session de chronomètre terminée. Non
+Compteur remis à zéro. Non
+Ajout ou retrait de pelotes. Non
+Modification du matériel. Non
+Ajout d’un patron ou d’un document. Non
+
+Tu peux me dire lesquelles tu souhaites conserver. Je ne veux pas que ton journal soit rempli de notifications inutiles.
+
+E. Les projets terminés
+
+Je voudrais distinguer deux moments :
+
+Terminé : le tricot est terminé.
+Entretien : le vêtement est bloqué, les fils sont rentrés et le résultat a été contrôlé après utilisation.
+
+Est-ce que tu aimerais un suivi d’entretien avec des étapes à cocher et des notes datées ? Non
+
+Par exemple : premier blocage, premier lavage, après trois utilisations, après plusieurs mois…
+
+Une fois le projet terminé, veux-tu conserver les compteurs et le chronomètre en lecture seule, tout en permettant de continuer le suivi d’entretien ? Non
+
+4. Une dernière décision importante
+
+Je retiens bien le nom « Marqueur » au singulier pour remplacer « Stitch markers ». ❤️
+
+Et j’aimerais aussi qu’on garde une règle pour tout le chantier :
+
+On ne supprime aucune fonctionnalité existante simplement parce qu’on réorganise l’interface. On distingue toujours la suppression visuelle, la désactivation et la suppression réelle des données.
+
+Audit fiche wip
+
+MAIS OUIIII 😭❤️ Tes réponses viennent de donner une vraie direction à la fiche WIP. Et je crois avoir compris ce qui te dérange le plus : tu ne veux pas une fiche qui accumule les informations verticalement, tu veux un véritable espace de travail compact, beau et vivant.
+
+Je vais figer tes décisions avant de passer à la conception. Et je tranche aussi pour le panneau des compteurs !
+
+1. Les décisions que je retiens
+
+Décisions validées
+
+La structure générale
+
+* Une vue d’ensemble qui mélange photo, informations du projet et suivi.
+* Des onglets pour accéder aux sections détaillées.
+* Pas de réorganisation personnalisable des sections.
+* Une apparence différente selon le statut.
+* Un projet terminé devient un carnet souvenir, mais conserve un suivi après réalisation : blocage, tenue de la laine, fils rentrés, évolution dans le temps.
+
+Patrons et documents
+
+* Plusieurs patrons associés à un WIP.
+* Plusieurs PDF, personnels ou issus de patrons.
+* PDF indépendants d’un patron possibles.
+* Réorganisation des PDF.
+* Suppression d’un PDF sans supprimer son patron.
+* Pas de PDF principal.
+* Pour un patron personnel, un véritable éditeur de texte permettant de rédiger son propre patron, plutôt que de devoir importer un PDF.
+
+Compteurs
+
+* Rangs, tours, répétitions, mailles et compteurs libres.
+* Nom et valeur de départ personnalisables.
+* Objectif facultatif.
+* Couleurs attribuées automatiquement.
+* Aucun pictogramme.
+* Valeurs négatives interdites.
+* Remise à zéro.
+* Masquer et archiver les compteurs.
+* Confirmation avant suppression et possibilité d’annuler.
+
+Chronomètre et journal
+
+* Démarrage manuel.
+* Demande de confirmation lorsqu’on change de WIP pendant une session.
+* Historique des sessions dans le journal.
+* Modification manuelle des durées.
+* Journal avec texte, photos, date automatique, compteurs et notes vocales.
+* Certaines actions génèrent automatiquement une entrée.
+
+Matériel, photos et souvenirs
+
+* Pas de fiches détaillées de laine pour le moment.
+* Plusieurs aiguilles par projet.
+* Couleurs avec codes hexadécimaux et emplacement dans le projet.
+* Deux catégories de photos : Inspirations et Photos.
+* Couverture indépendante de la galerie.
+* Pas de comparaison côte à côte.
+
+WIP Island et projets terminés
+
+* On conserve le fonctionnement actuel de WIP Island.
+* Les dernières notes restent consultables depuis l’île.
+* Les projets terminés deviennent une vitrine de réalisations avec leurs souvenirs et leurs statistiques.
+
+Les modifications d’interface
+
+* Supprimer la boîte indépendante « Photo de couverture ».
+* Déplacer le bouton « + Nouvelle photo » et les autres commandes photo dans la boîte « Patron lié ».
+* Cliquer sur la photo de couverture ouvre le patron.
+* Renommer « Stitch markers » en Marqueurs.
+* Réduire considérablement la hauteur de la fiche WIP.
+* Conserver le fonctionnement actuel des PDF pour le moment.
+* Conserver le système des pelotes avec l’emoji qui augmente le nombre utilisé : c’est un petit détail qu’on ne touche surtout pas ! 🧶
+
+2. Je tranche pour les compteurs sur iPhone
+
+Mon choix ergonomique
+
+Je recommande un panneau compact repliable qui devient un tiroir inférieur sur iPhone.
+
+Pourquoi ?
+
+* Il ne cache pas inutilement le PDF ou le contenu de la fiche.
+* Il reste facilement accessible au pouce.
+* Il peut être réduit à une petite barre indiquant les compteurs actifs.
+* Il peut s’agrandir quand tu as besoin de manipuler plusieurs compteurs.
+* Sa taille, sa position et son état restent mémorisés indépendamment pour chaque WIP.
+
+Sur ordinateur, je privilégie un petit panneau flottant discret, déplaçable et redimensionnable.
+
+3. Maintenant, les questions qui vont vraiment déterminer le design
+
+Je vais éviter de te refaire des questions auxquelles tu as déjà répondu. On va approfondir les zones où plusieurs choix de conception sont encore possibles.
+
+On va donc corriger la maquette avec ces règles :
+Suppression complète de l’onglet « Outils » dans la fiche WIP. Les outils ne deviennent pas des onglets ni des cartes encombrantes.
+Accès rapide aux outils sur la page principale, sous forme d’icônes/émojis sur une ou deux lignes maximum.
+
+En appuyant sur une icône, l’outil correspondant s’ouvre dans la page du WIP, sans faire disparaître le bandeau du projet, les statistiques ni la boîte d’accès au patron.
+Rétablissement des statistiques existantes : statut (En attente, WIP, Terminé), durée depuis le début, temps tricoté au total, rangs comptés et pelotes utilisées.
+Je veux que Nouvelle disposition de la page principale WIP:
+
+1) boite patron lié
+2) statut du projet
+3) statistiques existantes (mais en plus petit, tout doit tenir sur 1seule ligne!)
+4)acces rapide aux outils
+5) outil ouvert
+ah oui comme ça tu sais, je prefere les icones  et le css que toiu tu m'as fais, mais la disposition et l'affichage je prefere celui que j'ai fais sur magicpath, j'avais corrigé la disposition du  bureau sur magicpath car je prefere
