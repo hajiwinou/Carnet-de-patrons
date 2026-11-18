@@ -1,5 +1,5 @@
 /* Service worker : permet d'ouvrir l'atelier sans connexion */
-var CACHE = 'atelier-tricot-v4';
+var CACHE = 'atelier-tricot-v6';
 var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',

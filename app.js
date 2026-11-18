@@ -1562,12 +1562,75 @@
     return pr;
   }
   function lastActivity(pr) { return (pr.log && pr.log[0] && pr.log[0].ts) || pr.stageAt[pr.stage] || pr.created; }
+  function pjLegacyCover(pr) {
+    /* ancienne couverture envoyée à part (pas une photo du projet, du journal ni de l'inspiration) */
+    var c = pr.cover;
+    if (!c || String(c).indexOf('pjc_') !== 0) return false;
+    if ((pr.photos || []).indexOf(c) >= 0) return false;
+    return !(pr.log || []).some(function(en) { return (en.photos || []).indexOf(c) >= 0; });
+  }
+  function pjCoverChoices(pr) {
+    var out = [], seen = {};
+    function add(id, grp) { if (id && !seen[id]) { seen[id] = 1; out.push({ id: id, grp: grp }); } }
+    (pr.photos || []).forEach(function(id) { add(id, 'Photos du projet'); });
+    if (pjLegacyCover(pr)) add(pr.cover, 'Photos du projet');
+    (pr.log || []).forEach(function(en) { (en.photos || []).forEach(function(id) { add(id, 'Journal'); }); });
+    inspoItems(pr).forEach(function(it) { if (it.mediaId && it.mediaType !== 'video') add(it.mediaId, 'Inspiration'); });
+    var p = patternOf(pr);
+    if (p) (p.photos || []).forEach(function(ph) { if (ph && ph.id) add(ph.id, 'Photos du patron'); });
+    return out;
+  }
+  /* Couverture : 1) la première page du PDF si on l'a choisie, 2) la photo choisie (elle ne change plus,
+     même si un PDF est lié ensuite), 3) sinon la première photo du projet, 4) sinon la page du PDF. */
   function pjCoverId(pr) {
-    if (pr.cover) return pr.cover;
+    var p = patternOf(pr), th = p && p.thumb ? p.thumb : '';
+    if (pr.coverPdf && th) return th;
+    if (pr.cover && pjCoverChoices(pr).some(function(c) { return c.id === pr.cover; })) return pr.cover;
     if (pr.photos && pr.photos.length) return pr.photos[0];
     for (var i = 0; i < (pr.log || []).length; i++) if (pr.log[i].photos && pr.log[i].photos.length) return pr.log[i].photos[0];
-    var p = patternOf(pr);
-    return p && p.thumb ? p.thumb : '';
+    return th;
+  }
+  function pjCoverCardHtml(pr) {
+    var p = patternOf(pr), th = p && p.thumb ? p.thumb : '', ch = pjCoverChoices(pr);
+    var mode = (pr.coverPdf && th) ? 'pdf' : (pr.cover && ch.some(function(c) { return c.id === pr.cover; })) ? 'photo' : 'auto';
+    var hasOwn = (pr.photos && pr.photos.length) || (pr.log || []).some(function(en) { return en.photos && en.photos.length; });
+    var txt = mode === 'pdf' ? 'Couverture : la première page du PDF.' :
+      mode === 'photo' ? 'Couverture : la photo choisie. Elle ne change pas, même si un PDF est lié.' :
+      hasOwn ? 'Automatique : la première photo du projet.' : th ? 'Automatique : la première page du PDF.' : 'Aucune photo pour l’instant.';
+    function tile(imgId, pick, label, on) {
+      return '<button type="button" class="cvtile' + (on ? ' on' : '') + '" data-act="coverPick" data-id="' + esc(pick) + '" aria-pressed="' + (on ? 'true' : 'false') + '" aria-label="' + esc(label) + '">' + blobImg(imgId, label) + (on ? '<span class="cvck">✓</span>' : '') + '</button>';
+    }
+    var h = '<div class="card stack"><h3>Photo de couverture</h3><span class="sub">' + txt + '</span>';
+    if (th) h += '<span class="sub cvgrp">Patron PDF</span><div class="cvrow">' + tile(th, '__pdf', 'Première page du PDF', mode === 'pdf') + '</div>';
+    ['Photos du projet', 'Journal', 'Inspiration', 'Photos du patron'].forEach(function(g) {
+      var l = ch.filter(function(c) { return c.grp === g; });
+      if (!l.length) return;
+      h += '<span class="sub cvgrp">' + esc(g) + '</span><div class="cvrow">' + l.map(function(c) { return tile(c.id, c.id, 'Choisir comme couverture', mode === 'photo' && pr.cover === c.id); }).join('') + '</div>';
+    });
+    h += '<div class="row"><label class="btn small primary" for="pjCover">+ Nouvelle photo</label><input id="pjCover" type="file" accept="image/*">' +
+      '<button type="button" class="btn small" data-act="coverPick" data-id="__auto"' + (mode === 'auto' ? ' disabled' : '') + '>Automatique</button></div></div>';
+    return h;
+  }
+  function pjPlannedTotal(pr) {
+    var cols = pr.plannedColors || [];
+    if (cols.length) return cols.reduce(function(t, c) { return t + (c.planned > 0 ? c.planned : 0); }, 0);
+    return pr.plannedSkeins > 0 ? pr.plannedSkeins : 0;
+  }
+  /* Au passage « En attente » → WIP : les pelotes prévues deviennent des fils avec leur nombre prévu */
+  function pjApplyPlan(pr) {
+    var ys = pjYarns(pr), cols = Array.isArray(pr.plannedColors) ? pr.plannedColors : [];
+    function sync(src, base) {
+      var y = src.yarnId && ys.find(function(x) { return x.id === src.yarnId; });
+      if (y) { if (!(y.planned > 0) && src.planned > 0) y.planned = src.planned; return; }
+      if (!(src.planned > 0 || base.hex || base.color)) return;
+      y = { id: 'y' + uid(), name: '', brand: '', color: base.color || '', hex: base.hex || '', used: 0, planned: src.planned > 0 ? src.planned : 0 };
+      ys.push(y); src.yarnId = y.id;
+    }
+    if (cols.length) cols.forEach(function(c) { sync(c, { color: c.name, hex: c.hex }); });
+    else if (pr.plannedSkeins > 0) { var hold = { planned: pr.plannedSkeins, yarnId: pr.plannedYarnId }; sync(hold, {}); pr.plannedYarnId = hold.yarnId; }
+  }
+  function pjDeleteCardHtml(pr) {
+    return '<div class="card stack"><h3>Supprimer</h3>' + (S.pjDel ? '<p class="sub">Supprimer définitivement « ' + esc(pr.name) + ' » et ses photos ?</p><div class="row"><button class="btn danger small" data-act="pjDelYes">Oui, supprimer</button><button class="btn small" data-act="pjDelNo">Annuler</button></div>' : '<button class="btn danger small" data-act="pjDel" style="align-self:flex-start">Supprimer ce projet</button>') + '</div>';
   }
   function blobImg(id, alt) {
     var url = getBlobUrl(id);
@@ -1584,6 +1647,7 @@
     pr.stageAt[st] = Date.now();
     if (st === 'termine') { delete pr.islandSince; delete pr.islandPin; delete pr.leftIsland; }
     else if (st === 'wip' && from !== 'wip') { pr.workAt = Date.now(); }
+    if (from === 'attente') pjApplyPlan(pr);
     saveProjects();
     render();
     if (quiet) return;
@@ -1609,6 +1673,7 @@
     if (isIsland(pr)) info.push('Sur l’île depuis ' + Math.max(islandCfg().months, Math.floor((Date.now() - pjLastTouch(pr)) / 86400000 / 30.44)) + ' mois');
     var skn = pjSkeins(pr);
     if (skn && statOn('skeins')) info.push('🧶 ' + pjSkeinsTxt(pr));
+    if (st === 'attente') { var ptot = pjPlannedTotal(pr); if (ptot > 0) info.push('🧶 ' + ptot + ' pelote' + (ptot > 1 ? 's' : '') + ' prévue' + (ptot > 1 ? 's' : '')); }
     return '<div class="pcard"><button class="cover" data-act="openPj" data-id="' + esc(pr.id) + '" aria-label="Ouvrir le projet">' + cover + '</button><div class="pinfo">' +
       '<div class="stack" style="gap:4px"><button type="button" class="ptitle" data-act="openPj" data-id="' + esc(pr.id) + '">' + esc(pr.name || 'Sans nom') + '</button>' +
       (info.length ? '<span class="sub">' + info.join(' · ') + '</span>' : '') + (isIsland(pr) ? islandMiniTags(pr) : '') + '</div>' +
@@ -1694,7 +1759,7 @@
       '<button type="button" class="icon-btn" data-act="yarnDel" data-id="' + id + '" aria-label="Retirer ce fil">&#10005;</button></div>' +
       '<div class="yl">' + fld('brand', 'Marque') + colorBtnHtml('y:' + y.id, y, 'y') + '</div><div class="cpal" data-cpal="y:' + id + '" hidden></div>' +
       (on ? '<div class="yl"><label class="yplan"><span class="sub">Pelotes prévues</span><input class="in" type="number" inputmode="numeric" min="0" step="1" data-yf="planned" data-id="' + id + '" value="' + (y.planned > 0 ? y.planned : '') + '" placeholder="0" aria-label="Pelotes prévues"></label>' +
-        '<span class="yskein"' + (y.name && String(y.name).trim() ? '' : ' hidden') + '><button type="button" class="icon-btn" data-act="yarnInc" data-id="' + id + '" data-v="-1" aria-label="Retirer une pelote">−</button>' +
+        '<span class="yskein"' + (((y.name && String(y.name).trim()) || y.planned > 0) ? '' : ' hidden') + '><button type="button" class="icon-btn" data-act="yarnInc" data-id="' + id + '" data-v="-1" aria-label="Retirer une pelote">−</button>' +
         '<button type="button" class="btn small yinc" data-act="yarnInc" data-id="' + id + '" data-v="1" aria-label="Une pelote de plus">🧶 <b class="num" data-yused="' + id + '">' + yarnCountTxt(y) + '</b></button></span></div>' : '') +
       '</div>';
   }
@@ -1826,6 +1891,7 @@
   function tmToggle(pr) {
     S.projects.forEach(function(x) { if (x !== pr && x.timer && x.timer.start) { x.timer.acc += Date.now() - x.timer.start; x.timer.start = 0; } });
     if (!pr.timer) pr.timer = { acc: 0, start: 0 };
+    if (!pr.timer.start && pjStageOf(pr) === 'attente') setPjStage(pr, 'wip'); /* lancer le chrono = le projet est commencé */
     pr.workAt = Date.now();
     if (pr.timer.start) { pr.timer.acc += Date.now() - pr.timer.start; pr.timer.start = 0; } else pr.timer.start = Date.now();
     saveProjects(); render();
@@ -2037,12 +2103,17 @@
     var rows = pr.plannedColors.map(function(c) {
       var key = 'p:' + c.id;
       return '<div class="planned-color" data-pcolor-row="' + esc(c.id) + '"><div class="pc-top">' + colorBtnHtml(key, c, 'p') +
+        '<label class="yplan"><span class="sub">Pelotes</span><input class="in" type="number" inputmode="numeric" min="0" step="1" data-pcplan="' + esc(c.id) + '" value="' + (c.planned > 0 ? c.planned : '') + '" placeholder="0" aria-label="Pelotes prévues pour cette couleur"></label>' +
         '<button class="icon-btn" data-act="plannedColorDel" data-id="' + esc(c.id) + '" aria-label="Retirer cette couleur">×</button></div>' +
         '<div class="cpal" data-cpal="' + esc(key) + '"' + (openKey === key ? '>' + colorPalHtml(key, c.hex) : ' hidden>') + '</div></div>';
     }).join('');
     return '<div class="card stack"><div class="row"><h3 class="grow">Couleurs de fil prévues</h3><span class="chip mute">' + pr.plannedColors.length + '</span></div>' +
       '<div class="planned-colors" id="plannedColors">' + rows + '</div>' +
-      '<button type="button" class="btn small" data-act="plannedColorAdd">+ Ajouter une couleur</button></div>';
+      '<button type="button" class="btn small" data-act="plannedColorAdd">+ Ajouter une couleur</button>' +
+      '<div class="fl"><span class="n">Pelotes prévues</span>' + (pr.plannedColors.length ?
+        '<span class="sub">Total : <b class="num" data-pjplantotal>' + pjPlannedTotal(pr) + '</b> pelote(s). Indiquez le nombre pour chaque couleur ci-dessus.</span>' :
+        '<input class="in" id="plannedSkeins" type="number" inputmode="numeric" min="0" step="1" data-pjplan="1" value="' + (pr.plannedSkeins > 0 ? pr.plannedSkeins : '') + '" placeholder="0" aria-label="Nombre de pelotes prévues">') +
+      '<span class="sub">Ce nombre est repris automatiquement quand le projet passe en WIP.</span></div></div>';
   }
 
 
@@ -2056,6 +2127,45 @@
       (ms.length?'<div class="stack" style="gap:6px">'+ms.map(function(m){return '<div class="row card" style="padding:8px 10px"><b class="num">Rang '+esc(m.row)+'</b><span class="grow">'+esc(m.label||'Repère')+'</span><button class="btn small" data-act="stitchDel" data-id="'+esc(pr.id)+'" data-mid="'+esc(m.id)+'" aria-label="Supprimer le marqueur">✕</button></div>';}).join('')+'</div>':'<span class="sub">Aucun marqueur pour le moment.</span>')+'</div>';
   }
 
+  function pjTimerCardHtml(pr) {
+    var run = !!(pr.timer && pr.timer.start), tms = tmMs(pr);
+    return '<div class="card stack"><h3>Chronomètre</h3><div class="timer-big" data-timer="' + esc(pr.id) + '">' + tmFmt(tms) + '</div>' +
+      '<div class="row"><button class="btn primary grow" data-act="tmToggle" data-id="' + esc(pr.id) + '">' + (run ? 'Pause' : (tms > 0 ? 'Reprendre' : 'Démarrer')) + '</button>' +
+      '<button class="btn" data-act="tmLog">Ajouter au journal</button><button class="btn small" data-act="tmReset">Remettre à 0</button></div>' +
+      '<span class="sub">Il continue de tourner même si vous changez de page.</span></div>';
+  }
+  /* Choix du patron : liste déroulante avec une case de recherche en première ligne */
+  function patPickHtml(pr, pats) {
+    var cur = pats.find(function(x) { return x.id === pr.patternId; });
+    function opt(id, label, key) {
+      return '<button type="button" class="patpick-opt' + ((pr.patternId || '') === id ? ' on' : '') + '" role="option" data-act="patPickSet" data-id="' + esc(id) + '" data-k="' + esc(key) + '">' + esc(label) + '</button>';
+    }
+    return '<div class="fl patpick" id="patPick"><span class="n">Patron lié</span>' +
+      '<button type="button" class="in patpick-btn" data-act="patPickOpen" aria-haspopup="listbox" aria-expanded="false"><span class="patpick-cur">' + esc(cur ? cur.title : '— Aucun —') + '</span><span aria-hidden="true">▾</span></button>' +
+      '<div class="patpick-pop" hidden><input class="in" type="search" id="patPickQ" placeholder="Rechercher un patron…" autocomplete="off" autocapitalize="none" aria-label="Rechercher un patron">' +
+      '<div class="patpick-list" role="listbox">' + opt('', '— Aucun —', '') +
+      pats.map(function(x) { return opt(x.id, x.title, gkey((x.title || '') + ' ' + ((x.f && x.f.designer) || ''))); }).join('') +
+      '<div class="sub patpick-none" hidden>Aucun patron ne correspond.</div></div></div></div>';
+  }
+  function patPickFilter(q) {
+    var k = gkey(q), root = document.getElementById('patPick'), n = 0;
+    if (!root) return;
+    root.querySelectorAll('.patpick-opt').forEach(function(b) {
+      var show = !k || b.dataset.id === '' || (b.dataset.k || '').indexOf(k) >= 0;
+      b.hidden = !show; if (show && b.dataset.id !== '') n++;
+    });
+    var none = root.querySelector('.patpick-none'); if (none) none.hidden = !(k && !n);
+  }
+  function patPickClose() {
+    var root = document.getElementById('patPick'); if (!root) return;
+    var pop = root.querySelector('.patpick-pop'), btn = root.querySelector('.patpick-btn');
+    if (pop) pop.hidden = true; if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  function pjSetPattern(pr, id) {
+    pr.patternId = id || '';
+    if (id && isAutoPjName(pr.name)) { var lp = S.patterns.find(function(x) { return x.id === id; }); if (lp) pr.name = lp.title; }
+    saveProjects(); render();
+  }
   function viewPjd() {
     var pr = curPj();
     if (!pr) { S.tab = 'pj'; return viewPj(); }
@@ -2067,10 +2177,10 @@
       /* 1. miniature + patron lié */
       '<div class="card row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">' +
       '<div style="position:relative;width:104px;flex:none;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--line);display:grid;place-items:center">' + (cv ? blobImg(cv, 'Miniature') : '<span class="sub" style="padding:6px;text-align:center">Pas de photo</span>') + '</div>' +
-      '<div class="stack grow" style="gap:8px;min-width:0"><label class="fl"><span class="n">Patron lié</span><select class="in" data-pj="patternId"><option value="">— Aucun —</option>' +
-      pats.map(function(x) { return '<option value="' + esc(x.id) + '"' + (pr.patternId === x.id ? ' selected' : '') + '>' + esc(x.title) + '</option>'; }).join('') + '</select></label>' +
-      (p ? (pjHasPdf(pr) ? '<button class="btn primary small" data-act="viewPdf" data-id="' + esc(p.id) + '" data-pj="' + esc(pr.id) + '">Voir le PDF</button>' + (st === 'wip' ? '<span class="sub">Compteur de rangs dans le PDF · rang ' + (pr.rows || 0) + '</span>' : '') : '') + '<button class="btn small" data-act="open" data-id="' + esc(p.id) + '">Fiche du patron</button>' +
+      '<div class="stack grow" style="gap:8px;min-width:0">' + patPickHtml(pr, pats) +
+      (p ? (pjHasPdf(pr) ? '<button class="btn primary small" data-act="viewPdf" data-id="' + esc(p.id) + '" data-pj="' + esc(pr.id) + '">Voir le PDF</button>' + (st === 'wip' ? '<span class="sub">Compteur de rangs dans le PDF · rang ' + (pr.rows || 0) + '</span>' : st === 'attente' ? '<span class="sub">Compteur de rangs dans le PDF : le projet passe en WIP dès que vous comptez un rang.</span>' : '') : '') + '<button class="btn small" data-act="open" data-id="' + esc(p.id) + '">Fiche du patron</button>' +
         (pjHasPdf(pr) ? '' : '<span class="sub">Pas de PDF enregistré.</span>') : '<span class="sub">Liez un patron pour le consulter d\'un appui.</span>') + '</div></div>' +
+      pjCoverCardHtml(pr) +
       /* 2. infos du projet + statistiques */
       '<div class="card stack"><h3>Infos du projet</h3>' + (st==='wip' && !isIsland(pr)?'<button class="btn small" data-act="sendIsland" data-id="'+esc(pr.id)+'">Envoyer à WIP island</button>':'') + islandBackHtml(pr) + (isIsland(pr) ? '<div class="note info">Ce projet est classé dans WIP Island. Il y restera jusqu’à ce que tu le marques comme terminé.</div>' : '') +
       '<div class="seg" role="group" aria-label="Avancement">' + PJ_STAGES.map(function(x) {
@@ -2084,10 +2194,10 @@
         '<label class="fl"><span class="n">Taille des aiguilles</span><select class="in" data-pj="needles">' + needleOpts(pr.needles || '') + '</select></label>') + '</div>';
     if (st === 'termine') h += ratingHtml(pr);
     if (st === 'wip') h += stitchMarkersHtml(pr);
-    if (st === 'attente') return h + inspoHtml(pr) + '</div>';
+    if (st === 'attente') return h + pjTimerCardHtml(pr) + inspoHtml(pr) + pjDeleteCardHtml(pr) + '</div>';
     if (inspoItems(pr).length) h += inspoHtml(pr);
     /* 3. photos : carrousel */
-    var phs = []; if (pr.cover) phs.push(pr.cover); (pr.photos || []).forEach(function(id) { if (phs.indexOf(id) < 0) phs.push(id); });
+    var phs = []; if (pjLegacyCover(pr)) phs.push(pr.cover); (pr.photos || []).forEach(function(id) { if (phs.indexOf(id) < 0) phs.push(id); });
     h += '<div class="card stack"><div class="row"><h3 class="grow">Photos</h3>' + (phs.length ? '<span class="chip mute num">' + phs.length + '</span>' : '') +
       '<label class="btn small primary" for="pjAddPh">Ajouter une photo</label><input id="pjAddPh" type="file" accept="image/*" multiple></div>' +
       (phs.length ? '<div class="pjcw">' + (phs.length > 1 ? '<button type="button" class="pjcar-nav pjcar-prev" data-act="pjCar" data-v="-1" aria-label="Photo précédente">‹</button><button type="button" class="pjcar-nav pjcar-next" data-act="pjCar" data-v="1" aria-label="Photo suivante">›</button>' : '') +
@@ -2097,10 +2207,7 @@
         }).join('') + '</div></div>' : '<p class="sub">Aucune photo pour l\'instant. Ajoutez celles de votre tricot : elles s\'afficheront ici en carrousel.</p>') + '</div>';
     /* chronomètre */
     var run = !!(pr.timer && pr.timer.start), tms = tmMs(pr);
-    if (st !== 'termine') h += '<div class="card stack"><h3>Chronomètre</h3><div class="timer-big" data-timer="' + esc(pr.id) + '">' + tmFmt(tms) + '</div>' +
-      '<div class="row"><button class="btn primary grow" data-act="tmToggle" data-id="' + esc(pr.id) + '">' + (run ? 'Pause' : (tms > 0 ? 'Reprendre' : 'Démarrer')) + '</button>' +
-      '<button class="btn" data-act="tmLog">Ajouter au journal</button><button class="btn small" data-act="tmReset">Remettre à 0</button></div>' +
-      '<span class="sub">Il continue de tourner même si vous changez de page.</span></div>';
+    if (st !== 'termine') h += pjTimerCardHtml(pr);
     /* compteur : il vit maintenant dans le PDF (visionneuse). Ici : repli seulement si le projet n'a pas de PDF */
     if (st === 'wip') {
       h += '<div class="card stack"><span class="n" style="font-size:14px;font-weight:500">Compteur de rangs</span><div class="counter">' +
@@ -2126,8 +2233,7 @@
         (en.text ? '<p style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(en.text) + '</p>' : '') +
         ((en.photos || []).length ? '<div class="pjph">' + en.photos.map(function(id) { return '<button type="button" data-act="lightbox" data-id="' + esc(id) + '" aria-label="Agrandir la photo">' + blobImg(id, 'Progression') + '</button>'; }).join('') + '</div>' : '') + '</div>';
     });
-    h +=
-      '<div class="card stack"><h3>Supprimer</h3>' + (S.pjDel ? '<p class="sub">Supprimer définitivement « ' + esc(pr.name) + ' » et ses photos ?</p><div class="row"><button class="btn danger small" data-act="pjDelYes">Oui, supprimer</button><button class="btn small" data-act="pjDelNo">Annuler</button></div>' : '<button class="btn danger small" data-act="pjDel" style="align-self:flex-start">Supprimer ce projet</button>') + '</div></div>';
+    h += pjDeleteCardHtml(pr) + '</div>';
     return h;
   }
   function projectsBlock(p) {
@@ -2227,9 +2333,14 @@
     p.source.file = name + '.pdf';
     persist();
   }
+  function dupAutoName(f) {
+    var base = f.name.replace(/\.pdf$/i, ''), n = 2;
+    while (nameTaken(base + ' (' + n + ')')) n++;
+    return base + ' (' + n + ').pdf';
+  }
   function askDup(f, old) {
     return new Promise(function(resolve) {
-      D = { step: 1, f: f, old: old, resolve: resolve, oldName: old.title, newName: f.name.replace(/\.pdf$/i, '') + ' (2)', err: '' };
+      D = { step: 1, f: f, old: old, total: S.dupTotal || 0, resolve: resolve, oldName: old.title, newName: f.name.replace(/\.pdf$/i, '') + ' (2)', err: '' };
       renderDupe();
     });
   }
@@ -2247,7 +2358,11 @@
     var h = '';
     if (D.step === 1) {
       h = '<h2>Ce fichier existe déjà</h2><p>« ' + esc(D.f.name) + ' » porte le même nom qu\'un patron déjà présent dans votre carnet (« ' + esc(D.old.title) + ' »).</p><p><b>Voulez-vous garder les deux ?</b></p>' +
-        '<div class="row"><button class="btn primary grow" data-act="dupBoth">Oui, garder les deux</button><button class="btn grow" data-act="dupNo">Non</button></div>';
+        '<div class="row"><button class="btn primary grow" data-act="dupBoth">Oui, garder les deux</button><button class="btn grow" data-act="dupNo">Non</button></div>' +
+        (D.total > 1 ? '<div class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:10px"><span class="sub"><b>' + D.total + ' fichiers</b> de cet import sont déjà dans votre carnet. Une seule réponse pour tous :</span>' +
+          '<button class="btn" data-act="dupAllBoth">Tout garder (les deux versions)</button>' +
+          '<button class="btn" data-act="dupAllNew">Tout remplacer (le nouveau remplace l\'ancien)</button>' +
+          '<button class="btn small" data-act="dupAllOld" style="align-self:flex-start">Tout ignorer (garder les anciens)</button></div>' : '');
     } else if (D.step === 2) {
       h = '<h2>Renommer pour les distinguer</h2><p class="sub">Modifiez le nom de l\'ancien PDF, du nouveau, ou des deux. Les deux noms doivent être différents.</p>' +
         '<label class="fl"><span class="n">Ancien PDF</span><input class="in" id="dupOld" type="text" value="' + esc(D.oldName) + '"></label>' +
@@ -2660,6 +2775,12 @@
   async function handleFiles(files) {
     if(S.importRunning) {toast('Un import est déjà en cours.');return;}
     S.importRunning=true; S.importStop=false; S.importRows=files.map(function(f){return {name:f.name,status:'En attente'};});
+    var dupAll = null, dupSeen = {};
+    S.dupTotal = files.filter(function(f) {
+      if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') return false;
+      var k = dupKey(f.name), d = !!dupSeen[k] || !!findDup(f);
+      dupSeen[k] = 1; return d;
+    }).length;
     if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
     try {await safetySnapshot();} catch(e) {S.importRunning=false;storageFailure(e);return;}
     S.tab = 'add';
@@ -2674,9 +2795,14 @@
       }
       var fname = f.name, old = findDup(f);
       if (old) {
-        S.busy = '';
-        render();
-        var dd = await askDup(f, old);
+        var dd;
+        if (dupAll) dd = { action: dupAll };
+        else {
+          S.busy = '';
+          render();
+          dd = await askDup(f, old);
+          if (dd.all) dupAll = dd.action;
+        }
         if (dd.action === 'old') { item.status='Ignoré (doublon)';
           S.log.unshift({ ok: 1, m: f.name + ' : ignoré, l\'ancien est conservé.' });
           continue;
@@ -2688,6 +2814,7 @@
           renameP(old, dd.oldName);
           fname = dd.newName + '.pdf';
         }
+        if (dd.action === 'bothAuto') { fname = dupAutoName(f); }
       }
       S.busy = 'Lecture de ' + fname + '…';
       render();
@@ -2706,7 +2833,12 @@
         S.patterns.unshift(p);
         clearTimeout(persistTimer);persistTimer=null;
         try {await persistNow();} catch(e) {S.patterns=S.patterns.filter(function(x){return x.id!==p.id;});throw e;}
-        if(pendingReplace) {pdfs.delete(pendingReplace.id);removeP(pendingReplace);await persistNow();}
+        if(pendingReplace) {
+          /* le nouveau patron reprend les projets et le dossier de l'ancien */
+          S.projects.forEach(function(pj) { if (pj.patternId === pendingReplace.id) pj.patternId = p.id; });
+          if (pendingReplace.folder && !p.folder) p.folder = pendingReplace.folder;
+          pdfs.delete(pendingReplace.id);removeP(pendingReplace);await persistNow();
+        }
         last = p;
         made.push(p);
         try {await storeThumb(p,r.pdf);await persistNow();} catch(e) {console.warn(e);}
@@ -2908,6 +3040,7 @@
     var was = pr.rows || 0;
     pr.rows = n === 0 ? 0 : Math.max(0, was + n);
     if (pr.rows === was) return false;
+    if (n > 0 && pjStageOf(pr) === 'attente') setPjStage(pr, 'wip'); /* compter un rang = le projet est commencé */
     if (n === 1) { (pr.rts = pr.rts || []).push(Date.now()); if (pr.rts.length > 40) pr.rts.shift(); }
     else if (n === -1) { if (pr.rts && pr.rts.length) pr.rts.pop(); }
     else pr.rts = [];
@@ -2959,9 +3092,10 @@
   var VRC = { pr: null, t: null, x: 0, y: 0, drag: false, arm: 0, st: null };
   function vrcProject(p, pjId) {
     var l = projectsOf(p.id), pr = pjId && l.find(function(x) { return x.id === pjId; });
-    if(pjId) return pr && pjStageOf(pr)==='wip' ? pr : null;
-    l = l.filter(function(x) { return pjStageOf(x) === 'wip'; }).sort(function(a, b) { return (b.act || 0) - (a.act || 0); });
-    return l.length===1 ? l[0] : null;
+    if(pjId) return pr && (pjStageOf(pr)==='wip' || pjStageOf(pr)==='attente') ? pr : null;
+    var lw = l.filter(function(x) { return pjStageOf(x) === 'wip'; }).sort(function(a, b) { return (b.act || 0) - (a.act || 0); });
+    if (!lw.length) lw = l.filter(function(x) { return pjStageOf(x) === 'attente'; });
+    return lw.length===1 ? lw[0] : null;
   }
   function vrcOpen(p, pjId) {
     var el = $('#vrc'), pr = vrcProject(p, pjId);
@@ -2981,7 +3115,7 @@
     var p=S.patterns.find(function(x){return x.id===V.id;});
     var pr=VRC.pr && S.projects.find(function(x){return x.id===VRC.pr.id;});
     if(!pr && p) pr=vrcProject(p,V.pjId);
-    if(!pr) {toast('Ouvrez le PDF depuis un projet en cours pour afficher son compteur.');return;}
+    if(!pr) {toast('Ouvrez le PDF depuis un projet (en attente ou en cours) pour afficher son compteur.');return;}
     VRC.pr=pr; var el=$('#vrc');el.hidden=false;el.classList.remove('min','custom','scrolling');el.style.left='';el.style.top='';
     $('#vrcMenu').hidden=true;$('#vrcV').textContent=pr.rows||0;$('#vrcPj').textContent='Projet : '+pr.name;
     keep('carnet.vrcMin',0);keep('carnet.vrcPos',null);vrcStat();vrcSubUi();vrcPlace(null);syncCounterButton();
@@ -5571,6 +5705,10 @@
     if (t) t.textContent = c + ' %';
   }
 
+  document.addEventListener('click', function(e) {
+    var root = document.getElementById('patPick');
+    if (root && !root.contains(e.target)) patPickClose();
+  });
   document.addEventListener('input', function(e) {
     var t = e.target, p = cur();
     if (t.dataset.cc !== undefined) return;
@@ -5579,6 +5717,13 @@
     if (t.id === 'pjDraft') { S.pjDraft = t.value; return; }
     if (t.id === 'pdfNoteText') { S.pdfNote = t.value; return; }
     if (t.id === 'toolJournalDescription') { S.toolJournalDescription = t.value; return; }
+    if (t.id === 'patPickQ') { patPickFilter(t.value); return; }
+    if (t.dataset.pcplan) {
+      var pq = curPj(), pc1 = pq && (pq.plannedColors || []).find(function(x) { return x.id === t.dataset.pcplan; });
+      if (pc1) { pc1.planned = Math.max(0, parseInt(t.value, 10) || 0); var ptt = document.querySelector('[data-pjplantotal]'); if (ptt) ptt.textContent = pjPlannedTotal(pq); saveSoonPj(); }
+      return;
+    }
+    if (t.dataset.pjplan) { var pq2 = curPj(); if (pq2) { pq2.plannedSkeins = Math.max(0, parseInt(t.value, 10) || 0); saveSoonPj(); } return; }
     if (t.dataset.yf) {
       var yq = curPj(), yy1 = yq && pjYarns(yq).find(function(x) { return x.id === t.dataset.id; });
       if (yy1) {
@@ -5586,6 +5731,7 @@
         if (t.dataset.yf === 'planned') {
           document.querySelectorAll('[data-yused="' + yy1.id + '"]').forEach(function(el) { el.textContent = yarnCountTxt(yy1); });
           var sk1 = document.querySelector('[data-skeins]'); if (sk1) sk1.textContent = pjSkeinsTxt(yq);
+          var ysk2 = t.closest('.yrow') && t.closest('.yrow').querySelector('.yskein'); if (ysk2) ysk2.hidden = !((yy1.name || '').trim() || yy1.planned > 0);
         }
         saveSoonPj();
       }
@@ -5596,7 +5742,7 @@
       if (yy0) {
         yy0.name = t.value; saveSoonPj();
         var ysk = t.closest('.yrow') && t.closest('.yrow').querySelector('.yskein');
-        if (ysk) ysk.hidden = !t.value.trim();
+        if (ysk) ysk.hidden = !t.value.trim() && !(yy0.planned > 0);
       }
       return;
     }
@@ -5803,8 +5949,9 @@
         try {
           var cb = await shrink(cf, 1200), cid2 = 'pjc_' + uid();
           await saveBlob(cid2, cb);
-          if (pj2.cover) IDB.del(pj2.cover);
-          pj2.cover = cid2; saveProjects();
+          if (!pj2.photos) pj2.photos = [];
+          pj2.photos.push(cid2);
+          pj2.cover = cid2; pj2.coverPdf = false; saveProjects();
         } catch (er) { toast('Photo impossible à enregistrer.'); }
         S.busy = ''; render();
       }
@@ -6084,7 +6231,7 @@
     else if (a === 'inspoDel') {
       var idp = curPj(), ide = idp && (idp.inspo || []).find(function(x) { return x.id === b.dataset.id; });
       if (ide) {
-        if (ide.mediaId && !ide.ideaId) { if (!(await askConfirm('Supprimer cette photo ?', 'Elle sera retirée de l’inspiration de ce projet.', 'Supprimer'))) return; IDB.del(ide.mediaId); }
+        if (ide.mediaId && !ide.ideaId) { if (!(await askConfirm('Supprimer cette photo ?', 'Elle sera retirée de l’inspiration de ce projet.', 'Supprimer'))) return; IDB.del(ide.mediaId); if (idp.cover === ide.mediaId) idp.cover = ''; }
         idp.inspo = idp.inspo.filter(function(x) { return x.id !== ide.id; });
         saveProjects(); render();
         if (ide.ideaId) toast('Retirée du projet (elle reste dans vos idées).');
@@ -6206,11 +6353,11 @@
     }
     else if (a === 'plannedColorAdd') {
       var pca = curPj();
-      if (pca) { if (!Array.isArray(pca.plannedColors)) pca.plannedColors = []; var npc = { id: 'pc' + uid(), hex: '', name: '', yarn: 'À définir' }; pca.plannedColors.push(npc); S.colorOpen = 'p:' + npc.id; saveProjects(); render(); }
+      if (pca) { if (!Array.isArray(pca.plannedColors)) pca.plannedColors = []; var npc = { id: 'pc' + uid(), hex: '', name: '', yarn: 'À définir' }; if (!pca.plannedColors.length && pca.plannedSkeins > 0) { npc.planned = pca.plannedSkeins; pca.plannedSkeins = 0; } pca.plannedColors.push(npc); S.colorOpen = 'p:' + npc.id; saveProjects(); render(); }
     }
     else if (a === 'plannedColorDel') {
       var pcd = curPj();
-      if (pcd) { pcd.plannedColors = (pcd.plannedColors || []).filter(function(x) { return x.id !== b.dataset.id; }); saveProjects(); render(); }
+      if (pcd) { var pcOld = (pcd.plannedColors || []).find(function(x) { return x.id === b.dataset.id; }); pcd.plannedColors = (pcd.plannedColors || []).filter(function(x) { return x.id !== b.dataset.id; }); if (!pcd.plannedColors.length && pcOld && pcOld.planned > 0) pcd.plannedSkeins = pcOld.planned; saveProjects(); render(); }
     }
     else if (a === 'pjAddNote') {
       var pr8 = curPj();
@@ -6220,7 +6367,7 @@
     else if (a === 'pjDelEntryNo') { S.pjDelEntry = null; render(); }
     else if (a === 'pjDelEntryYes') {
       var pr7 = curPj();
-      if (pr7) { var en = pr7.log.find(function(x) { return x.id === b.dataset.id; }); if (en) (en.photos || []).forEach(function(id) { IDB.del(id); }); pr7.log = pr7.log.filter(function(x) { return x.id !== b.dataset.id; }); saveProjects(); }
+      if (pr7) { var en = pr7.log.find(function(x) { return x.id === b.dataset.id; }); if (en) { (en.photos || []).forEach(function(id) { IDB.del(id); }); if (pr7.cover && (en.photos || []).indexOf(pr7.cover) >= 0) pr7.cover = ''; } pr7.log = pr7.log.filter(function(x) { return x.id !== b.dataset.id; }); saveProjects(); }
       S.pjDelEntry = null; render();
     }
     else if (a === 'pjCar') {
@@ -6235,7 +6382,25 @@
         IDB.del(pid9); saveProjects(); render();
       }
     }
-    else if (a === 'pjCoverDel') { var pr6 = curPj(); if (pr6 && pr6.cover) { IDB.del(pr6.cover); pr6.cover = ''; saveProjects(); render(); } }
+    else if (a === 'pjCoverDel') { var pr6 = curPj(); if (pr6 && pr6.cover) { pr6.cover = ''; saveProjects(); render(); } }
+    else if (a === 'patPickOpen') {
+      var ppRoot = document.getElementById('patPick');
+      if (ppRoot) {
+        var ppPop = ppRoot.querySelector('.patpick-pop'), ppOpen = ppPop.hidden;
+        ppPop.hidden = !ppOpen; b.setAttribute('aria-expanded', ppOpen ? 'true' : 'false');
+        if (ppOpen) { var ppq = document.getElementById('patPickQ'); ppq.value = ''; patPickFilter(''); ppq.focus(); }
+      }
+    }
+    else if (a === 'patPickSet') { var ppj = curPj(); if (ppj) pjSetPattern(ppj, b.dataset.id); }
+    else if (a === 'coverPick') {
+      var cpj = curPj(), cpk = b.dataset.id;
+      if (cpj) {
+        if (cpk === '__auto') { cpj.cover = ''; cpj.coverPdf = false; }
+        else if (cpk === '__pdf') { cpj.coverPdf = true; }
+        else { cpj.cover = cpk; cpj.coverPdf = false; }
+        saveProjects(); render();
+      }
+    }
     else if (a === 'pjDel') { S.pjDel = true; render(); }
     else if (a === 'pjDelNo') { S.pjDel = false; render(); }
     else if (a === 'pjDelYes') {
@@ -6245,7 +6410,7 @@
         S.projects.splice(pi5, 1);
         saveProjects(); S.curProj = null; S.pjDel = false; S.tab = 'pj'; render();
         deferDelete('Projet supprimé.', function() { S.projects.splice(Math.min(pi5, S.projects.length), 0, pr5); saveProjects(); }, function() {
-          if (pr5.cover) IDB.del(pr5.cover);
+          if (pr5.cover && String(pr5.cover).indexOf('pjc_') === 0) IDB.del(pr5.cover);
           (pr5.photos || []).forEach(function(id) { IDB.del(id); });
           (pr5.inspo || []).forEach(function(e) { if (e.mediaId && !e.ideaId) IDB.del(e.mediaId); });
           (pr5.log || []).forEach(function(en2) { (en2.photos || []).forEach(function(id) { IDB.del(id); }); });
@@ -6401,6 +6566,9 @@
     else if (a === 'dupBoth' && D) { D.step = 2; renderDupe(); }
     else if (a === 'dupNo' && D) { D.step = 3; renderDupe(); }
     else if (a === 'dupBack' && D) { D.step = 1; D.err = ''; renderDupe(); }
+    else if (a === 'dupAllBoth' && D) closeDupe({ action: 'bothAuto', all: true });
+    else if (a === 'dupAllNew' && D) closeDupe({ action: 'new', all: true });
+    else if (a === 'dupAllOld' && D) closeDupe({ action: 'old', all: true });
     else if (a === 'dupKeepOld' && D) closeDupe({ action: 'old' });
     else if (a === 'dupKeepNew' && D) closeDupe({ action: 'new' });
     else if (a === 'dupOk' && D) {
