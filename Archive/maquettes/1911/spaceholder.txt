@@ -13,3 +13,31 @@ réponses:
 3) oui je veux bien qu'on essaye comme ça
 4) en fait le carnet souvenir c'est la meme chose qu'un projet terminé donc on l'a déjà fais , pour l'analyse ia c'est encore un mode beta donc je sais pas trop, mais on peut continuer par les outils
 5) oui stp <3
+
+
+Ce qui a avancé depuis le premier audit
+Outils : les 7 ont un écran PC (2 dessinés avant, 5 aujourd’hui). Seules les 3 cartes « À venir » n’ont pas de page, ce qui est normal.
+Idées : le tableau est refait et la fiche d’une idée existe.
+Statuts : tu as tranché pour En attente / WIP / Terminé côté projets.
+Carnet souvenir : tu as dit que c’est la même chose qu’un projet terminé.
+Problèmes que j’ai introduits
+Incohérence sur la sélection dans Idées. Je t’ai dit qu’il n’y avait plus de bouton « Sélection multiple ». Or j’ai laissé un bouton « Sélectionner » en haut, et la barre d’actions est déjà affichée. Il faut choisir : soit on coche directement, soit on active un mode.
+Bouton ambigu sur les cartes d’idées. Il porte le nom « Épingler sur un projet » alors qu’il sert à cocher (il affiche ✓ ou +). Pour un lecteur d’écran, c’est faux.
+Champs non réels. Dans tous mes écrans, les champs, onglets et bascules sont des blocs stylés, pas de vrais champs ni de vrais boutons, et les libellés ne leur sont pas associés. C’est acceptable pour une image, mais ce n’est pas une référence fiable pour le code.
+Valeurs inventées. « 1 cm = 12 px » dans Depuis une photo n’a aucune base. À retirer ou à relier à une vraie logique.
+Mise en page figée à 1280 px. Ce sont des maquettes PC fixes, pas des pages qui s’adaptent. C’est cohérent avec ton plan (PC d’abord), mais ce n’est pas réutilisable tel quel sur tablette.
+Cibles tactiles. Certains boutons font 32 à 40 px (contrôles de fenêtre, « + Tag », filtres). C’est correct à la souris, pas pour la version téléphone.
+Pied de page « Garder dans un projet ». Il manque sur Cobalt et la Calculatrice. C’est voulu, mais à confirmer.
+
+Les contrastes de texte que j’ai estimés passent 4,5 pour 1, mais ce sont des calculs, pas des mesures sur rendu. La police pixel (Pixelify Sans) est un choix de ma part, faute de ta valeur exacte.
+
+Trous qui restent, par ordre d’importance
+Le mobile. Aucun des 7 outils ni des écrans Idées n’existe en téléphone. La barre du bas à 5 entrées que tu as validée n’est dessinée nulle part. C’est ton plus gros trou, puisque l’iPhone est ta cible.
+La page d’un projet terminé. La maquette 8 montre seulement ce que le projet affichera une fois terminé. La vitrine, les photos et les statistiques du carnet ne sont pas dessinées, alors que le bouton « Ouvrir le carnet souvenir » y mène.
+La règle de progression. Tu n’as pas répondu : quel compteur pilote le « 35 % » ? Sans réponse, la barre peut afficher un chiffre faux dans l’appli.
+Les onglets d’un projet : Chrono, Marqueurs, Matériel, Calcul, et les parcours Nouveau projet, Démarrer, Passer en Terminé.
+Les formulaires et états : épingler une idée, nouveau dossier, suppression, bibliothèque vide, erreurs, verrouillage, et ce que signifie « Synchronisé » (le code n’a aucune synchronisation).
+Réglages : les autres sections (Apparence, Polices, Fond d’écran, Verrouillage, Sauvegarde). L’analyse IA est mise de côté tant qu’elle est en bêta.
+Ce que je te propose ensuite
+
+Le plus rentable est le mobile : la barre du bas, puis la bibliothèque, un outil et les Idées en version téléphone. Avant, réponds à la question sur la progression, et dis-moi si je corrige d’abord les points 1 à 4 de la liste des problèmes. Je peux aussi mettre cet audit dans un document, comme le premier.
