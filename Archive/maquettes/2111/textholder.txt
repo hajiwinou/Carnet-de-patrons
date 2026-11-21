@@ -1,1 +1,11 @@
+1) je veux que cette boite soit visible dans l’onglet en attente et une fois qu’on rajoute des fils, il faudra derouler l’onglet pour voir le reste en appuyant sur le bouton ajouter un fil
 
+2)je veux que l’onglet inspiration soit au dessus de materiel 
+3)je veux que le bouton demarrer soit separer en deux celui au dessus sert à consulter la fiche en attente et celui du dessous demarrer
+4)je veux que la boite note soit aussi dans les proejets en attente 
+5)quand on appuie sur une photo ça zoome dessus
+6 dans projets terminés et wip rajouter la boite inspiration (dans wip on peut encore ajouter des trucs mais pas dans projets terminés terminés
+7 dans projet terminés ajouter un bouton qui dit refaire ce patron où un truc comme ça et quand on appuie dessus ça nous cree un nouveau projet en attente lié au meme patron
+8je n’aime pas l’aspect de ces deux boutons, ils sont trop proches du bord
+
+9)une boite « Gauge » dans l’onglet en attente, où il y a la gauge du patron (qu’on peut ajouter) (normalement l’ia aura detecté la gauge et affiché la gauge du patron) et notre gauge qu’on a faite (sur deux cases l’une à coté de l’autre) et quand on reduit la boite gauge on voit c’est quoi notre gauge et celle du patron en petit
