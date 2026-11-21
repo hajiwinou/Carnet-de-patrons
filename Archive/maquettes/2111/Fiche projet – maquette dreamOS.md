@@ -1,0 +1,1 @@
+Maquette interactive, données fictives. Les changements ne sont pas enregistrés.
