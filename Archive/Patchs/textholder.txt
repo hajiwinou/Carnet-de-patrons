@@ -1,1 +1,1 @@
-
+$env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"; Get-ChildItem tests\*.test.mjs, tests\phase2_8_regression.browser.mjs | ForEach-Object { Write-Host "=== $($_.Name)"; node $_.FullName 2>&1 | Select-String -NotMatch "MODULE_TYPELESS|Reparsing|Reparsing|eliminate|trace-warnings|node:" ; if ($LASTEXITCODE -ne 0) { Write-Host "ECHEC : $($_.Name)" -ForegroundColor Red } }
